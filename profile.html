@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Profile</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <button id="logoutBtn">Log out</button>
+
+  <h1 id="login"></h1>
+  <p id="xp"></p>
+  <p>Audit ratio: <span id="auditRatio"></span></p>
+
+  <h2>XP Over Time</h2>
+  <svg id="xpChart" width="600" height="300"></svg>
+
+  <h2>Pass / Fail Ratio</h2>
+  <svg id="passFailChart" width="300" height="220"></svg>
+
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/charts.js"></script>
+  <script>
+    document.getElementById("logoutBtn").addEventListener("click", logout);
+    loadXPOverTimeChart();
+    loadPassFailChart();
+  </script>
+</body>
+</html>
