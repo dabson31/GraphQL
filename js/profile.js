@@ -25,10 +25,8 @@ function renderProfile(data) {
     const totalXP = data.transaction_aggregate.aggregate.sum.amount; // .aggregate.aggregate.aggregate.aggregate crazy? i was crazy once
 
     document.getElementById("login").textContent = user.login;
-    document.getElementById("xp").textContent = '${totalXP} XP';
-    document.getElementById("auditRatio").textContent = user.auditRatio.toFixed(2);
+    document.getElementById("xp").textContent = `${totalXP} XP`;
+    document.getElementById("auditRatio").textContent = user.auditRatio.toFixed(1);
 
-
-    loadProfile();
 
 }
