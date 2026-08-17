@@ -2,31 +2,337 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>My Profile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BLACKWALL // PROFILE</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <button id="logoutBtn">Log out</button>
+  <div class="bw-sweep"></div>
 
-  <h1 id="login"></h1>
-  <p id="xp"></p>
-  <p>Audit ratio: <span id="auditRatio"></span></p>
+  <!-- boot sequence overlay, plays once on load then dissolves — see js/boot.js -->
+  <div id="bootOverlay" class="boot-overlay">
+    <div id="bootLines" class="boot-lines"></div>
+  </div>
 
-  <h2>XP Over Time</h2>
-  <svg id="xpChart" width="600" height="300"></svg>
+  <div class="dashboard">
 
-  <h2>Pass / Fail Ratio</h2>
-  <svg id="passFailChart" width="300" height="220"></svg>
+    <!-- top bar: identity box (top-left) + logout (top-right) -->
+    <div class="topbar">
+      <button id="identityBox" class="identity-box hud-frame" title="Open netrunner profile">
+        <span class="identity-dot"></span>
+        <span class="identity-text">
+          <span class="label">Netrunner ID</span>
+          <span class="name" id="topName">LOADING...</span>
+          <span class="identity-rank" id="topRank">--</span>
+        </span>
+        <span class="identity-uptime" id="sessionUptime">UPLINK 00:00:00</span>
+      </button>
+
+      <button id="logoutBtn" class="logout-btn">Disconnect</button>
+    </div>
+
+    <div class="title-band">
+      <h1 class="glitch" data-text="NEURAL DASHBOARD">NEURAL DASHBOARD</h1>
+      <div class="sub">blackwall relay // dynamic feed // tracks selected data source</div>
+      <div class="boot-line">uplink stable · relay handshake ok · rendering 11 endpoints</div>
+    </div>
+
+    <!-- 6-col grid: left chart stack, center hero column, right chart stack —
+         all three columns are stretched to end at the same y level, see
+         .grid-layout / .center-visuals / .hero-column in style.css -->
+    <div class="grid-layout">
+
+      <!-- left column: skill matrix, data-source toggle, then the uplink log
+           sitting under the toggle so the feed it's reporting on is directly
+           above it instead of clear across the grid in the center column -->
+      <div class="center-visuals">
+        <div class="chart-card hud-frame" data-magnify>
+          <span class="chart-title">Skill Matrix</span>
+          <svg id="skillsChart" viewBox="0 0 260 244"></svg>
+        </div>
+
+        <div class="chart-card hud-frame source-toggle-card">
+          <span class="chart-title">Data Source</span>
+          <div class="source-toggle-list">
+            <button class="source-btn active" data-source="module" style="--src-color:#ff1937;">MODULE</button>
+            <button class="source-btn" data-source="bh-piscine" style="--src-color:#00e8ff;">PISCINE GO</button>
+            <button class="source-btn" data-source="piscine-js" style="--src-color:#f2d219;">PISCINE JS</button>
+            <button class="source-btn" data-source="piscine-rust" style="--src-color:#ff7a1a;">PISCINE RUST</button>
+          </div>
+          <p class="source-hint">swaps the trajectory feed on the main graph</p>
+        </div>
+
+        <div class="chart-card hud-frame uplink-card">
+          <span class="chart-title">Uplink Log</span>
+          <div id="uplinkLog" class="uplink-log"></div>
+        </div>
+      </div>
+
+      <!-- center column: hero graph on top, then passed/failed + given/received
+           side by side underneath it -->
+      <div class="hero-column">
+        <div class="hero-graph hud-frame">
+          <div class="scan-line"></div>
+          <span class="chart-title" id="heroTitle">XP Trajectory — Module</span>
+          <svg id="xpChart" width="100%" height="100%" style="position:relative;z-index:1;"></svg>
+        </div>
+
+        <div class="hero-substrip">
+          <div class="stat-card stat-card-half hud-frame" data-magnify data-icon="✓" style="--icon-color:#21e6a1;">
+            <span class="stat-label">Projects Passed / Failed</span>
+            <div class="stat-split">
+              <div class="stat-split-item">
+                <span class="stat-value" id="stat-passed">--</span>
+                <span class="stat-sub">clean runs</span>
+              </div>
+              <div class="stat-split-divider"></div>
+              <div class="stat-split-item">
+                <span class="stat-value" id="stat-failed">--</span>
+                <span class="stat-sub">flatlined attempts</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card stat-card-half hud-frame" data-magnify data-icon="⇅" style="--icon-color:#00e8ff;">
+            <span class="stat-label">XP Given / Received</span>
+            <div class="stat-split">
+              <div class="stat-split-item">
+                <span class="stat-value" id="stat-up">--</span>
+                <span class="stat-sub">audits you ran</span>
+              </div>
+              <div class="stat-split-divider"></div>
+              <div class="stat-split-item">
+                <span class="stat-value" id="stat-down">--</span>
+                <span class="stat-sub">audits run on you</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- right column: pass/fail, audit gauge, street cred (with a system
+           diagnostics readout tacked on below it), module xp, best skill -->
+      <div class="center-visuals right">
+        <div class="chart-card hud-frame" data-magnify>
+          <span class="chart-title">Pass / Fail</span>
+          <svg id="passFailChart" viewBox="0 0 220 220"></svg>
+        </div>
+        <div class="chart-card hud-frame" data-magnify>
+          <span class="chart-title">Audit Ratio</span>
+          <svg id="auditGauge" viewBox="0 0 200 200"></svg>
+        </div>
+        <div class="chart-card hud-frame cred-card">
+          <span class="chart-title">Street Cred</span>
+          <div id="streetCred" class="cred-body"></div>
+
+          <!-- simple divider line separating rank info from system diagnostics -->
+          <div class="cred-divider"></div>
+
+          <div class="sys-usage" id="sysUsage">
+            <div class="sys-row">
+              <span class="sys-label">RAM</span>
+              <div class="sys-bar-track"><div class="sys-bar-fill" id="sysRamFill"></div></div>
+              <span class="sys-value sys-value-num" id="sysRamVal">--/--</span>
+            </div>
+            <div class="sys-row">
+              <span class="sys-label">GPU</span>
+              <div class="sys-bar-track"><div class="sys-bar-fill" id="sysGpuFill"></div></div>
+              <span class="sys-value" id="sysGpuVal">--%</span>
+            </div>
+            <div class="sys-row">
+              <span class="sys-label">CPU</span>
+              <div class="sys-bar-track"><div class="sys-bar-fill" id="sysCpuFill"></div></div>
+              <span class="sys-value" id="sysCpuVal">--%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card stat-card-wide hud-frame" data-magnify data-icon="◆" style="--icon-color:#ff1937;">
+          <span class="stat-label" id="stat-xp-label">Module XP</span>
+          <span class="stat-value stat-value-lg" id="stat-xp">--</span>
+          <span class="stat-outline" id="stat-xp-remainder">--</span>
+          <span class="stat-sub">raw data transferred // tracks the active source feed</span>
+        </div>
+
+        <div class="stat-card stat-card-wide hud-frame" data-magnify data-icon="★" style="--icon-color:#f2d219;">
+          <span class="stat-label">Best Skill</span>
+          <span class="stat-value stat-value-lg" id="stat-best-skill">--</span>
+          <span class="stat-outline" id="stat-best-skill-outline">--</span>
+          <span class="stat-sub">highest logged amount</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- bottom-left: night city references corner, rotating lore lines -->
+    <div class="lore-corner hud-frame">
+      <div class="lore-title">// samurai.dat</div>
+      <div class="lore-line">
+        <span class="lore-flicker" id="loreQuote">"Wake the f*** up, samurai. We have a city to burn."</span>
+      </div>
+      <div class="lore-line">Relic status: <span>STABLE</span> · Blackwall integrity: <span id="loreIntegrity">98.2%</span></div>
+      <div class="lore-line" id="loreStatus">Chippin' in — connection secured via Afterlife relay node.</div>
+    </div>
+
+  </div>
 
   <script src="js/auth.js"></script>
   <script src="js/api.js"></script>
   <script src="js/profile.js"></script>
   <script src="js/charts.js"></script>
+  <script src="js/boot.js"></script>
+  <script src="js/magnify.js"></script>
+  <script src="js/sandevistan.js"></script>
+  <script src="js/terminal.js"></script>
   <script>
     document.getElementById("logoutBtn").addEventListener("click", logout);
+    document.getElementById("identityBox").addEventListener("click", () => {
+      window.location.href = "profile-detail.html";
+    });
+
+    // data source toggle buttons under the skill matrix, swaps the hero graph
+    const sourceLabels = {
+      "module": "Module", "bh-piscine": "Piscine Go",
+      "piscine-js": "Piscine JS", "piscine-rust": "Piscine Rust",
+    };
+    document.querySelectorAll(".source-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".source-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const source = btn.dataset.source;
+        document.getElementById("heroTitle").textContent = `XP Trajectory — ${sourceLabels[source]}`;
+        loadXPOverTimeChart(source);
+        // uplink log + the wide xp tile follow the same toggle, see charts.js
+        loadUplinkLog(source);
+        loadSourceXPStat(source);
+      });
+    });
+
+    // rotating lore lines in the bottom-left corner, cheap and free personality
+    const loreLines = [
+      `"Wake the f*** up, samurai. We have a commit to push."`,
+      `"A happy commit? For folks like us? Wrong repo, wrong users"`,
+      `"It's not the strength of the pc, choom, it's how you use it."`,
+      `"Windows over Linux? Nah --. It's giving Arasaka. "`,
+      `"you'll get a blue screen of death, choomba."`,
+      `"The net doesn't forget. Neither does git log."`,
+    ];
+    let loreIdx = 0;
+    setInterval(() => {
+      loreIdx = (loreIdx + 1) % loreLines.length;
+      const el = document.getElementById("loreQuote");
+      el.style.opacity = 0;
+      setTimeout(() => { el.textContent = loreLines[loreIdx]; el.style.opacity = 1; }, 350);
+    }, 6000);
+
+    // session uptime clock in the identity box, purely cosmetic, purely real time
+    const sessionStart = Date.now();
+    setInterval(() => {
+      const s = Math.floor((Date.now() - sessionStart) / 1000);
+      const hh = String(Math.floor(s / 3600)).padStart(2, "0");
+      const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+      const ss = String(s % 60).padStart(2, "0");
+      document.getElementById("sessionUptime").textContent = `UPLINK ${hh}:${mm}:${ss}`;
+    }, 1000);
+
+    // RAM/GPU/CPU readout under the street cred divider. browsers deliberately
+    // don't expose true system-wide memory/GPU/CPU usage to a webpage (that's
+    // a sandboxing/privacy boundary, not something any JS trick gets around),
+    // so this pulls the closest *real* numbers the platform actually offers
+    // instead of just faking all three:
+    //
+    // RAM  — navigator.deviceMemory gives the device's approx total RAM in GB
+    //        (rounded to a power of two, Chromium-only). "used" is this tab's
+    //        real JS heap (performance.memory.usedJSHeapSize, also Chromium),
+    //        which is genuine live memory pressure, just page-scope rather
+    //        than whole-machine. shown as GB/GB per the numbers-not-% request.
+    // CPU  — no usage % API exists, so this measures real main-thread load:
+    //        a timer asks to fire every SAMPLE_MS and measures how late it
+    //        actually runs. a busy thread makes the timer late; that lateness
+    //        as a fraction of the interval is a genuine (if rough) load figure.
+    // GPU  — there is no browser API for GPU utilization, full stop. what IS
+    //        real: the actual GPU/renderer name via the WebGL debug info
+    //        extension. that's shown instead of a fabricated percentage.
+    const sysMemAvailable = "deviceMemory" in navigator;
+    const sysHeapAvailable = !!(performance && performance.memory);
+    const totalRamGB = sysMemAvailable ? navigator.deviceMemory : null;
+
+    function renderRam() {
+      const el = document.getElementById("sysRamVal");
+      const fill = document.getElementById("sysRamFill");
+      if (!sysMemAvailable) {
+        el.textContent = "n/a";
+        el.title = "navigator.deviceMemory isn't supported in this browser";
+        return;
+      }
+      let usedGB;
+      if (sysHeapAvailable) {
+        // this tab's real heap, in GB, is the most honest "used" figure a
+        // page can get — there's no way to see what other tabs/apps are using
+        usedGB = performance.memory.usedJSHeapSize / 1073741824;
+      } else {
+        usedGB = 0;
+      }
+      const pct = Math.min(100, (usedGB / totalRamGB) * 100);
+      fill.style.width = pct + "%";
+      el.textContent = `${usedGB.toFixed(2)}/${totalRamGB} GB`;
+      el.title = sysHeapAvailable
+        ? "Used = this tab's JS heap (page-scope, not whole-system) · Total = navigator.deviceMemory"
+        : "performance.memory isn't supported here, so 'used' can't be measured";
+    }
+
+    // CPU: real event-loop-lag probe. schedules a tick every SAMPLE_MS and
+    // compares requested vs. actual delay — the gap is genuine main-thread
+    // contention, smoothed a bit so it doesn't jitter every sample.
+    const CPU_SAMPLE_MS = 500;
+    let cpuSmoothed = 0;
+    let cpuLastTick = performance.now();
+    function sampleCpu() {
+      const now = performance.now();
+      const drift = Math.max(0, (now - cpuLastTick) - CPU_SAMPLE_MS);
+      cpuLastTick = now;
+      const instant = Math.max(0, Math.min(100, (drift / CPU_SAMPLE_MS) * 100));
+      cpuSmoothed = cpuSmoothed * 0.7 + instant * 0.3; // ease out sample-to-sample noise
+      document.getElementById("sysCpuFill").style.width = cpuSmoothed + "%";
+      document.getElementById("sysCpuVal").textContent = Math.round(cpuSmoothed) + "%";
+      setTimeout(sampleCpu, CPU_SAMPLE_MS);
+    }
+    const coreCount = navigator.hardwareConcurrency;
+    if (coreCount) {
+      document.getElementById("sysCpuVal").title = `${coreCount} logical cores reported`;
+    }
+
+    // GPU: swap the fake percentage for the real renderer name (best real
+    // data a browser will hand over), pulled once via a throwaway canvas.
+    function detectGpuName() {
+      try {
+        const canvas = document.createElement("canvas");
+        const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+        const ext = gl && gl.getExtension("WEBGL_debug_renderer_info");
+        if (gl && ext) return gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
+      } catch (e) { /* fall through */ }
+      return null;
+    }
+    (function renderGpu() {
+      const label = document.getElementById("sysGpuVal");
+      const fill = document.getElementById("sysGpuFill");
+      const name = detectGpuName();
+      fill.style.width = "0%";
+      fill.style.opacity = "0.25"; // no real load figure to draw, bar stays dim
+      label.textContent = name ? name.replace(/^ANGLE \(|\)$/g, "").split(",")[0] : "n/a";
+      label.title = "Browsers don't expose GPU load to a webpage — this is the detected GPU/renderer instead";
+    })();
+
+    renderRam();
+    setInterval(renderRam, CPU_SAMPLE_MS);
+    sampleCpu();
+
     loadProfile();
-    loadXPOverTimeChart();
-    loadPassFailChart();
+    loadPassFailChart(); // also fills stat-passed / stat-failed, see charts.js
+    loadSkillsChart();
+    loadAuditGauge();
+    loadUplinkLog("module");
+    loadXPOverTimeChart("module");
   </script>
 </body>
 </html>

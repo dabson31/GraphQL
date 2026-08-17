@@ -2,18 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BLACKWALL // ACCESS</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <form id="loginForm">
-    <h1>Login</h1>
-    <input id="identifier" placeholder="Username or Email" required />
-    <input id="password" type="password" placeholder="Password" required />
-    <button type="submit">Log in</button>
-    <p id="errorMsg" class="error"></p>
-  </form>
+  <div class="bw-sweep"></div>
 
+  <div class="login-wrap">
+    <form id="loginForm" class="hud-frame">
+      <h1 class="glitch" data-text="BLACKWALL">BLACKWALL</h1>
+      <span class="login-tag">// netrunner access terminal</span>
+
+      <input id="identifier" placeholder="USERNAME OR EMAIL" required autocomplete="username" />
+      <input id="password" type="password" placeholder="PASSWORD" required autocomplete="current-password" />
+      <button type="submit">Jack In</button>
+
+      <p id="errorMsg" class="error"></p>
+
+      <!-- scan/breach/intrusion log readout, overlays the form during a
+           login attempt, see js/login-transitions.js -->
+      <div id="txLog" class="tx-log"></div>
+    </form>
+  </div>
+
+  <!-- full-screen hard-flash beat used by the success transition -->
+  <div id="txFlash" class="tx-flash"><span id="txFlashText"></span></div>
+
+  <script src="js/login-transitions.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/sandevistan.js"></script>
 </body>
 </html>
