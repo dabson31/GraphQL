@@ -386,7 +386,7 @@ function drawAuditGauge(ratio) {
     x: cx, y: cy + 5, "text-anchor": "middle", "font-size": "26",
     fill: ICE, "font-family": "Rajdhani, sans-serif", "font-weight": "700"
   });
-  num.textContent = ratio.toFixed(1);
+  num.textContent = ratio.toFixed(2);
   svg.appendChild(num);
 
   const sub = svgEl("text", { x: cx, y: cy + 22, "text-anchor": "middle", "font-size": "8" });

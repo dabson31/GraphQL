@@ -1,5 +1,7 @@
 const MODULE_ONLY_FILTER = `path: { _nilike: "%piscine%" }`;
 
+sessionStorage.removeItem("blackwall_profile_target");
+
 // street cred tiers (ranks), renamed to fit the theme
 const RANKS = [
   { min: 0,        title: "Chrome Rookie",     desc: "fresh jack, still smells like the ripperdoc's chair" },

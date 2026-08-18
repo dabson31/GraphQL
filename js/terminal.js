@@ -81,8 +81,19 @@
     document.body.appendChild(overlay);
 
     overlay.querySelector(".bw-terminal-close").addEventListener("click", closeTerminal);
+    let outsideClicks = 0;
+    let outsideDecayTimer = null;
     overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) closeTerminal();
+      if (e.target !== overlay) return;
+      outsideClicks++;
+      clearTimeout(outsideDecayTimer);
+      outsideDecayTimer = setTimeout(() => {
+        outsideClicks = 0;
+      }, 1500);
+      if (outsideClicks >= 4) {
+        outsideClicks = 0;
+        closeTerminal();
+      }
     });
 
     termEl = overlay;
@@ -108,12 +119,50 @@
     }
   }
 
-  function printLine(text, cls) {
+  const REDUCE_MOTION = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const GLITCH_CHARS = "!<>-_\\/[]{}=+*^?#$%&01\u2588\u2591\u2592";
+
+  function typeInto(el, text, speed) {
+    return new Promise((resolve) => {
+      if (REDUCE_MOTION || !text) {
+        el.textContent = text;
+        resolve();
+        return;
+      }
+      let i = 0;
+      const step = () => {
+        if (i >= text.length) {
+          el.textContent = text;
+          resolve();
+          return;
+        }
+        const showGlitch = Math.random() < 0.3;
+        el.textContent =
+          text.slice(0, i) +
+          (showGlitch ? GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)] : text[i]);
+        if (!showGlitch) i++;
+        outputEl.scrollTop = outputEl.scrollHeight;
+        setTimeout(step, speed + Math.random() * (showGlitch ? 10 : 14));
+      };
+      step();
+    });
+  }
+
+  function printLineInstant(text, cls) {
     const line = document.createElement("div");
     line.className = "bw-terminal-line" + (cls ? " " + cls : "");
     line.textContent = text;
     outputEl.appendChild(line);
     outputEl.scrollTop = outputEl.scrollHeight;
+    return line;
+  }
+
+  function printLine(text, cls, speed) {
+    const line = document.createElement("div");
+    line.className = "bw-terminal-line" + (cls ? " " + cls : "");
+    outputEl.appendChild(line);
+    outputEl.scrollTop = outputEl.scrollHeight;
+    return typeInto(line, text, speed || 10);
   }
 
   function printBlock(lines, cls) {
@@ -137,7 +186,7 @@
 
   async function handleCommand(raw) {
     const cmd = raw.trim().toLowerCase();
-    printLine("> " + raw, "bw-terminal-echo");
+    printLineInstant("> " + raw, "bw-terminal-echo");
 
     if (!cmd) return;
 
@@ -150,7 +199,14 @@
         printBlock([
           "AVAILABLE COMMANDS",
           "  help                       list commands",
-          "  whoami                     query your own identity flag",
+          "  whoami                     deep-scan this rig + your identity",
+          "  sysinfo                    alias for whoami",
+          "  scan                       run a fake threat/intrusion sweep",
+          "  ping <host>                real HTTPS round-trip timing to a host",
+          "  matrix                     toggle a full-screen code-rain overlay",
+          "  profile                    open your netrunner file",
+          "  profile <login-or-id>      open someone else's netrunner file",
+          "  date                       print local date/time + timezone",
           "  shownetrunners             list netrunners in your cohort as a bar chart",
           "  shownetrunners -t          plain table instead of the chart",
           "                             (--table also works)",
@@ -159,16 +215,34 @@
           "  shownetrunners --event <id-or-path>",
           "                             force a specific event instead of the",
           "                             auto-detected cohort (-e also works)",
+          "  clear                      wipe the shell output",
           "  exit                       close this shell",
         ]);
         break;
 
       case "whoami":
-        printBlock([
-          "IDENTITY: UNKNOWN",
-          "CLEARANCE: \u2588\u2588\u2588\u2588\u2588\u2588\u2588",
-          "OBSERVATION STATUS: ACTIVE",
-        ], "bw-terminal-cryptic");
+      case "sysinfo":
+        await runWhoami();
+        break;
+
+      case "scan":
+        runScan();
+        break;
+
+      case "ping":
+        await runPing(flags[0]);
+        break;
+
+      case "matrix":
+        toggleMatrix();
+        break;
+
+      case "profile":
+        goToProfile(flags[0]);
+        break;
+
+      case "date":
+        printLine(new Date().toString(), "bw-terminal-cryptic");
         break;
 
       case "shownetrunners": {
@@ -355,33 +429,250 @@
 
     const wrapper = document.createElement("div");
     wrapper.className = "bw-terminal-chart";
-
-    members.forEach((m) => {
-      const barLen = Math.max(1, Math.round((m.auditRatio / maxRatio) * CHART_BAR_MAX));
-      const isYou = m.login === myLogin;
-
-      const row = document.createElement("div");
-      row.className = "bw-chart-row" + (isYou ? " bw-chart-row--you" : "");
-
-      const label = document.createElement("span");
-      label.className = "bw-chart-label";
-      label.textContent = m.login.padEnd(loginWidth, " ") + " ";
-
-      const bar = document.createElement("span");
-      bar.className = "bw-chart-bar";
-      bar.textContent = "\u2588".repeat(barLen);
-
-      const value = document.createElement("span");
-      value.className = "bw-chart-value";
-      value.textContent = " " + m.auditRatio.toFixed(2) + (isYou ? " (you)" : "");
-
-      row.appendChild(label);
-      row.appendChild(bar);
-      row.appendChild(value);
-      wrapper.appendChild(row);
-    });
-
     outputEl.appendChild(wrapper);
     outputEl.scrollTop = outputEl.scrollHeight;
+
+    members.forEach((m, idx) => {
+      setTimeout(() => {
+        const barLen = Math.max(1, Math.round((m.auditRatio / maxRatio) * CHART_BAR_MAX));
+        const isYou = m.login === myLogin;
+
+        const row = document.createElement("div");
+        row.className = "bw-chart-row" + (isYou ? " bw-chart-row--you" : "");
+
+        const label = document.createElement("span");
+        label.className = "bw-chart-label";
+        const bar = document.createElement("span");
+        bar.className = "bw-chart-bar";
+        const value = document.createElement("span");
+        value.className = "bw-chart-value";
+
+        row.appendChild(label);
+        row.appendChild(bar);
+        row.appendChild(value);
+        wrapper.appendChild(row);
+        outputEl.scrollTop = outputEl.scrollHeight;
+
+        typeInto(label, m.login.padEnd(loginWidth, " ") + " ", 7)
+          .then(() => typeInto(bar, "\u2588".repeat(barLen), 5))
+          .then(() => typeInto(value, " " + m.auditRatio.toFixed(2) + (isYou ? " (you)" : ""), 9));
+      }, idx * 90);
+    });
+  }
+
+  const CRYPTIC_TAILS = [
+    "no anomalies flagged this cycle.",
+    "background trace running -- low priority.",
+    "netwatch flag: none on file.",
+    "last handshake nominal.",
+    "signal integrity within tolerance.",
+    "no known relichunter activity nearby.",
+  ];
+
+  function fakeIP(seed) {
+    let h = 0;
+    for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+    const oct = (n) => 10 + (n % 240);
+    return `${oct(h)}.${oct(h >> 8)}.${oct(h >> 16)}.${oct(h >> 24)}`;
+  }
+
+  function goToProfile(target) {
+    if (target) {
+      sessionStorage.setItem("blackwall_profile_target", target);
+      printLine(`redirecting to netrunner file: ${target}...`, "bw-terminal-cryptic");
+    } else {
+      sessionStorage.removeItem("blackwall_profile_target");
+      printLine("redirecting to your netrunner file...", "bw-terminal-cryptic");
+    }
+    setTimeout(() => {
+      window.location.href = "profile-detail.html";
+    }, 260);
+  }
+
+  async function runWhoami() {
+    printLine("running deep scan...");
+    try {
+      const me = await graphqlQuery(`{ user { id login } }`);
+      const login = me.user[0].login;
+      const id = me.user[0].id;
+
+      const nav = navigator;
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "unknown";
+      const cores = nav.hardwareConcurrency ? nav.hardwareConcurrency + " threads" : "unknown";
+      const mem = nav.deviceMemory ? nav.deviceMemory + " GB (approx, browser-reported)" : "undisclosed";
+      const res = `${screen.width}x${screen.height} @${window.devicePixelRatio || 1}x`;
+      const lang = nav.language || "unknown";
+      const platform = nav.platform || "unknown";
+      const online = nav.onLine ? "CONNECTED" : "OFFLINE";
+      const tail = CRYPTIC_TAILS[Math.floor(Math.random() * CRYPTIC_TAILS.length)];
+
+      printBlock([
+        `IDENTITY: ${login} (uid ${id})`,
+        `NET STATUS: ${online} -- spoofed uplink ${fakeIP(login)}`,
+      ], "bw-terminal-cryptic");
+      printLine("");
+      printBlock([
+        "-- LOCAL RIG --",
+        `  OS/PLATFORM   ${platform}`,
+        `  CORES         ${cores}`,
+        `  MEMORY        ${mem}`,
+        `  DISPLAY       ${res}`,
+        `  LOCALE        ${lang}`,
+        `  TIMEZONE      ${tz}`,
+        `  USER AGENT    ${nav.userAgent}`,
+      ]);
+      printLine("");
+      printLine(tail, "bw-terminal-cryptic");
+    } catch (err) {
+      printLine("scan failed: " + err.message, "bw-terminal-error");
+    }
+  }
+
+  const SCAN_TARGETS = [
+    "local subnet", "nearest relay node", "cached DNS table",
+    "open ports on this rig", "known netrunner beacons", "session cookies",
+  ];
+
+  const BAR_LEN = 24;
+
+  function runScan() {
+    printLine("initiating sweep...");
+
+    const barLine = printLineInstant("[" + "-".repeat(BAR_LEN) + "] 0%", "bw-terminal-cryptic");
+    let pct = 0;
+
+    const barTimer = setInterval(() => {
+      pct = Math.min(100, pct + 8 + Math.random() * 10);
+      const filled = Math.round((pct / 100) * BAR_LEN);
+      barLine.textContent =
+        "[" + "\u2588".repeat(filled) + "-".repeat(BAR_LEN - filled) + "] " + Math.floor(pct) + "%";
+      outputEl.scrollTop = outputEl.scrollHeight;
+
+      if (pct >= 100) {
+        clearInterval(barTimer);
+        setTimeout(() => {
+          printLine("SWEEP COMPLETE", "bw-terminal-cryptic");
+          const n = 2 + Math.floor(Math.random() * 3);
+          const pool = [...SCAN_TARGETS].sort(() => Math.random() - 0.5).slice(0, n);
+          pool.forEach((t, idx) => {
+            const flagged = Math.random() < 0.15;
+            const cls = flagged ? "bw-terminal-warn" : "bw-terminal-ok";
+            const mark = flagged ? "!" : "\u2713";
+            setTimeout(() => {
+              printLine(`  [${mark}] ${t} -- ${flagged ? "flagged, monitoring" : "clean"}`, cls);
+            }, idx * 140);
+          });
+          setTimeout(() => {
+            printLine("no active intrusions detected.", "bw-terminal-cryptic");
+          }, pool.length * 140 + 120);
+        }, 200);
+      }
+    }, 140);
+  }
+
+  async function runPing(hostArg) {
+    let host = (hostArg || "www.google.com").replace(/^https?:\/\//, "").split("/")[0];
+    const PING_BAR_LEN = 16;
+    const MAX_MS = 400;
+
+    printLine(`PING ${host} (real HTTPS round-trip, 4 requests)`);
+
+    let sent = 0;
+    let received = 0;
+
+    for (let i = 0; i < 4; i++) {
+      sent++;
+      const url = `https://${host}/favicon.ico?_=${Date.now()}`;
+      const start = performance.now();
+      try {
+        await fetch(url, { mode: "no-cors", cache: "no-store" });
+        const ms = performance.now() - start;
+        received++;
+        const cls = ms < 80 ? "bw-terminal-ok" : ms < 200 ? "bw-terminal-warn" : "bw-terminal-error";
+        const filled = Math.max(1, Math.round((Math.min(ms, MAX_MS) / MAX_MS) * PING_BAR_LEN));
+        const bar = "\u2588".repeat(filled) + "\u00b7".repeat(PING_BAR_LEN - filled);
+        await printLine(`  seq=${i + 1} [${bar}] time=${ms.toFixed(1)}ms`, cls);
+      } catch (err) {
+        await printLine(`  seq=${i + 1} request failed -- unreachable or blocked`, "bw-terminal-error");
+      }
+      if (i < 3) await new Promise((r) => setTimeout(r, 150));
+    }
+
+    const lossPct = Math.round(((sent - received) / sent) * 100);
+    printLine(`${host} -- ${sent} sent, ${received} received, ${lossPct}% loss`, "bw-terminal-cryptic");
+  }
+
+  let matrixCanvas = null;
+  let matrixCtx = null;
+  let matrixRAF = null;
+  let matrixCols = [];
+  let matrixResizeHandler = null;
+
+  const MATRIX_CHARS = "\u30a2\u30a4\u30a6\u30a8\u30aa\u30ab\u30ad\u30af\u30b1\u30b3\u30b5\u30b7\u30b9\u30bb\u30bd0123456789";
+  const MATRIX_FONT_SIZE = 17;
+  const MATRIX_FRAME_MS = 90;
+  const MATRIX_COL_DENSITY = 0.55;
+
+  function toggleMatrix() {
+    if (matrixCanvas) {
+      stopMatrix();
+      printLine("matrix overlay: OFF", "bw-terminal-cryptic");
+    } else {
+      startMatrix();
+      printLine("matrix overlay: ON", "bw-terminal-cryptic");
+    }
+  }
+
+  function startMatrix() {
+    matrixCanvas = document.createElement("canvas");
+    matrixCanvas.className = "bw-matrix-canvas";
+    document.body.appendChild(matrixCanvas);
+    matrixCtx = matrixCanvas.getContext("2d");
+
+    const resize = () => {
+      matrixCanvas.width = window.innerWidth;
+      matrixCanvas.height = window.innerHeight;
+      const cols = Math.ceil(matrixCanvas.width / MATRIX_FONT_SIZE);
+      matrixCols = new Array(cols).fill(0).map(() => Math.floor(Math.random() * -60));
+    };
+    resize();
+    matrixResizeHandler = resize;
+    window.addEventListener("resize", matrixResizeHandler);
+
+    let lastTick = 0;
+    const draw = (ts) => {
+      matrixRAF = requestAnimationFrame(draw);
+      if (ts - lastTick < MATRIX_FRAME_MS) return;
+      lastTick = ts;
+
+      matrixCtx.fillStyle = "rgba(3, 3, 4, 0.16)";
+      matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+      matrixCtx.font = MATRIX_FONT_SIZE + "px monospace";
+
+      for (let i = 0; i < matrixCols.length; i++) {
+        if (Math.random() > MATRIX_COL_DENSITY) continue;
+
+        const ch = MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)];
+        const isGlint = Math.random() < 0.05;
+        matrixCtx.fillStyle = isGlint ? "#ff1937" : "#5c0c18";
+        matrixCtx.fillText(ch, i * MATRIX_FONT_SIZE, matrixCols[i] * MATRIX_FONT_SIZE);
+
+        if (matrixCols[i] * MATRIX_FONT_SIZE > matrixCanvas.height && Math.random() > 0.985) {
+          matrixCols[i] = Math.floor(Math.random() * -30);
+        }
+        matrixCols[i]++;
+      }
+    };
+    matrixRAF = requestAnimationFrame(draw);
+  }
+
+  function stopMatrix() {
+    if (matrixRAF) cancelAnimationFrame(matrixRAF);
+    if (matrixResizeHandler) window.removeEventListener("resize", matrixResizeHandler);
+    if (matrixCanvas) matrixCanvas.remove();
+    matrixCanvas = null;
+    matrixCtx = null;
+    matrixRAF = null;
+    matrixResizeHandler = null;
   }
 })();
