@@ -1,10 +1,10 @@
 const NS = "http://www.w3.org/2000/svg";
-const RED = "#ff1937";
+const RED = "#ff003c";
 const ICE = "#f4f6f5";
-const FLAG = "#f2d219";
-const CYAN = "#00e8ff";
+const FLAG = "#fcee0a";
+const CYAN = "#00f0ff";
 const FAIL_COL = "#4a4a52";
-const GRID = "rgba(255,25,55,0.18)";
+const GRID = "rgba(255,0,60,0.18)";
 
 // svg elements need createElementNS instead of createElement or they wont render
 function svgEl(tag, attrs = {}) {
@@ -26,7 +26,7 @@ const SOURCE_COLORS = {
   "module":       RED,
   "piscine-go":   CYAN,
   "piscine-js":   FLAG,
-  "piscine-rust": "#ff7a1a",
+  "piscine-rust": "#ff2079",
 };
 
 //
@@ -242,11 +242,11 @@ function drawHexRadar(skills) {
 
   // the actual data shape
   const dataPts = skills.map((s, i) => pointAt(i, (s.value / maxVal) * maxR).join(",")).join(" ");
-  svg.appendChild(svgEl("polygon", { points: dataPts, fill: "rgba(255,25,55,0.25)", stroke: RED, "stroke-width": "2" }));
+  svg.appendChild(svgEl("polygon", { points: dataPts, fill: "rgba(255,0,60,0.25)", stroke: RED, "stroke-width": "2" }));
 
   skills.forEach((s, i) => {
     const [x, y] = pointAt(i, (s.value / maxVal) * maxR);
-    svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 3, fill: RED, style: "filter: drop-shadow(0 0 4px rgba(255,25,55,0.9));" }));
+    svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 3, fill: RED, style: "filter: drop-shadow(0 0 4px rgba(255,0,60,0.9));" }));
   });
 }
 
@@ -298,7 +298,7 @@ function drawStatusRing(pass, fail) {
     // 100% pass, draw one full solid ring, no dasharray, no seam
     svg.appendChild(svgEl("circle", {
       cx, cy, r, fill: "none", stroke: RED, "stroke-width": "10",
-      style: "filter: drop-shadow(0 0 6px rgba(255,25,55,0.7));",
+      style: "filter: drop-shadow(0 0 6px rgba(255,0,60,0.7));",
     }));
   } else if (pass === 0) {
     // 100% fail, full solid ring in the fail color (how would you even have this 💔💔💔)
@@ -312,7 +312,7 @@ function drawStatusRing(pass, fail) {
       "stroke-linecap": "butt",
       "stroke-dasharray": `${passLen} ${circumference - passLen}`,
       transform: `rotate(-90 ${cx} ${cy})`,
-      style: "filter: drop-shadow(0 0 6px rgba(255,25,55,0.6));",
+      style: "filter: drop-shadow(0 0 6px rgba(255,0,60,0.6));",
     }));
     svg.appendChild(svgEl("circle", {
       cx, cy, r, fill: "none", stroke: FAIL_COL, "stroke-width": "10",

@@ -54,10 +54,10 @@
         <div class="chart-card hud-frame source-toggle-card">
           <span class="chart-title">Data Source</span>
           <div class="source-toggle-list">
-            <button class="source-btn active" data-source="module" style="--src-color:#ff1937;">MODULE</button>
-            <button class="source-btn" data-source="bh-piscine" style="--src-color:#00e8ff;">PISCINE GO</button>
-            <button class="source-btn" data-source="piscine-js" style="--src-color:#f2d219;">PISCINE JS</button>
-            <button class="source-btn" data-source="piscine-rust" style="--src-color:#ff7a1a;">PISCINE RUST</button>
+            <button class="source-btn active" data-source="module" style="--src-color:#ff003c;">MODULE</button>
+            <button class="source-btn" data-source="bh-piscine" style="--src-color:#00f0ff;">PISCINE GO</button>
+            <button class="source-btn" data-source="piscine-js" style="--src-color:#fcee0a;">PISCINE JS</button>
+            <button class="source-btn" data-source="piscine-rust" style="--src-color:#ff2079;">PISCINE RUST</button>
           </div>
           <p class="source-hint">swaps the trajectory feed on the main graph</p>
         </div>
@@ -78,7 +78,7 @@
         </div>
 
         <div class="hero-substrip">
-          <div class="stat-card stat-card-half hud-frame" data-magnify data-icon="✓" style="--icon-color:#21e6a1;">
+          <div class="stat-card stat-card-half hud-frame" data-magnify data-icon="✓" style="--icon-color:#39ff8f;">
             <span class="stat-label">Projects Passed / Failed</span>
             <div class="stat-split">
               <div class="stat-split-item">
@@ -93,7 +93,7 @@
             </div>
           </div>
 
-          <div class="stat-card stat-card-half hud-frame" data-magnify data-icon="⇅" style="--icon-color:#00e8ff;">
+          <div class="stat-card stat-card-half hud-frame" data-magnify data-icon="⇅" style="--icon-color:#00f0ff;">
             <span class="stat-label">XP Given / Received</span>
             <div class="stat-split">
               <div class="stat-split-item">
@@ -147,14 +147,14 @@
           </div>
         </div>
 
-        <div class="stat-card stat-card-wide hud-frame" data-magnify data-icon="◆" style="--icon-color:#ff1937;">
+        <div class="stat-card stat-card-wide hud-frame" data-magnify data-icon="◆" style="--icon-color:#ff003c;">
           <span class="stat-label" id="stat-xp-label">Module XP</span>
           <span class="stat-value stat-value-lg" id="stat-xp">--</span>
           <span class="stat-outline" id="stat-xp-remainder">--</span>
           <span class="stat-sub">raw data transferred // tracks the active source feed</span>
         </div>
 
-        <div class="stat-card stat-card-wide hud-frame" data-magnify data-icon="★" style="--icon-color:#f2d219;">
+        <div class="stat-card stat-card-wide hud-frame" data-magnify data-icon="★" style="--icon-color:#fcee0a;">
           <span class="stat-label">Best Skill</span>
           <span class="stat-value stat-value-lg" id="stat-best-skill">--</span>
           <span class="stat-outline" id="stat-best-skill-outline">--</span>
@@ -176,6 +176,7 @@
 
   </div>
 
+  <script src="js/audio-fx.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/api.js"></script>
   <script src="js/profile.js"></script>

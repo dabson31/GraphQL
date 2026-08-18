@@ -654,7 +654,7 @@
 
         const ch = MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)];
         const isGlint = Math.random() < 0.05;
-        matrixCtx.fillStyle = isGlint ? "#ff1937" : "#5c0c18";
+        matrixCtx.fillStyle = isGlint ? "#ff003c" : "#5c0316";
         matrixCtx.fillText(ch, i * MATRIX_FONT_SIZE, matrixCols[i] * MATRIX_FONT_SIZE);
 
         if (matrixCols[i] * MATRIX_FONT_SIZE > matrixCanvas.height && Math.random() > 0.985) {

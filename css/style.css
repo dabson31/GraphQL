@@ -1,18 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
-  --void:        #030304;
-  --void-2:      #0a0a0d;
-  --panel:       #0d0d10;
-  --panel-line:  rgba(255, 25, 55, 0.28);
-  --red:         #ff1937;
-  --red-dim:     #8c0d1d;
-  --red-deep:    #4a0410;
-  --flag:        #f2d219;
+  --void:        #050203;
+  --void-2:      #0b0507;
+  --panel:       #100609;
+  --panel-line:  rgba(255, 0, 60, 0.32);
+  --red:         #ff003c;
+  --red-dim:     #8f0022;
+  --red-deep:    #4a0313;
+  --flag:        #fcee0a;
+  --cyan:        #00f0ff;
+  --magenta:     #ff2079;
   --ice:         #f4f6f5;
   --ice-dim:     #9aa39f;
-  --grid:        rgba(255, 25, 55, 0.07);
-  --ok:          #21e6a1;
+  --grid:        rgba(255, 0, 60, 0.07);
+  --ok:          #39ff8f;
 
   --font-display: 'Rajdhani', sans-serif;
   --font-mono:    'JetBrains Mono', 'Share Tech Mono', monospace;
@@ -101,7 +103,7 @@ body::after {
   left: 0; right: 0;
   height: 120px;
   top: 0;
-  background: linear-gradient(to bottom, transparent, rgba(255,25,55,0.06), transparent);
+  background: linear-gradient(to bottom, transparent, rgba(255, 0, 60,0.06), transparent);
   animation: sweep 7s linear infinite;
   pointer-events: none;
   z-index: 5;
@@ -114,13 +116,13 @@ body::after {
 .hud-frame {
   position: relative;
   border: 1px solid var(--panel-line);
-  background: linear-gradient(180deg, rgba(255,25,55,0.03), rgba(0,0,0,0.2));
+  background: linear-gradient(180deg, rgba(255, 0, 60,0.03), rgba(0,0,0,0.2));
   animation: frame-pulse 6s ease-in-out infinite;
 }
 
 @keyframes frame-pulse {
   0%, 100% { border-color: var(--panel-line); }
-  50% { border-color: rgba(255, 25, 55, 0.4); }
+  50% { border-color: rgba(255, 0, 60, 0.4); }
 }
 
 .hud-frame::before,
@@ -153,7 +155,7 @@ body::after {
   letter-spacing: 0.08em;
   color: var(--ice);
   text-transform: uppercase;
-  text-shadow: 0 0 18px rgba(255,25,55,0.55);
+  text-shadow: 0 0 18px rgba(255, 0, 60,0.55);
 }
 
 .glitch::before,
@@ -251,7 +253,7 @@ body::after {
 
 #loginForm input:focus {
   border-color: var(--red);
-  box-shadow: 0 0 0 1px var(--red), 0 0 16px rgba(255,25,55,0.35);
+  box-shadow: 0 0 0 1px var(--red), 0 0 16px rgba(255, 0, 60,0.35);
 }
 
 #loginForm button,
@@ -274,7 +276,7 @@ body::after {
 #loginForm button:hover {
   background: var(--red);
   color: var(--void);
-  box-shadow: 0 0 20px rgba(255,25,55,0.55);
+  box-shadow: 0 0 20px rgba(255, 0, 60,0.55);
 }
 
 #loginForm button:focus-visible,
@@ -366,6 +368,29 @@ input:focus-visible {
   justify-content: center;
 }
 
+.unauth-link {
+  position: fixed;
+  right: 20px;
+  bottom: 18px;
+  z-index: 6;
+  padding: 8px 14px;
+  background: rgba(10, 5, 7, 0.7);
+  border: 1px solid var(--red-dim);
+  color: var(--ice-dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.unauth-link:hover {
+  border-color: var(--magenta);
+  color: var(--magenta);
+  box-shadow: 0 0 12px rgba(255, 32, 121, 0.4);
+}
+
 .notfound-actions a {
   display: inline-block;
   padding: 13px 28px;
@@ -384,7 +409,7 @@ input:focus-visible {
 .notfound-actions a:hover {
   background: var(--red);
   color: var(--void);
-  box-shadow: 0 0 20px rgba(255,25,55,0.55);
+  box-shadow: 0 0 20px rgba(255, 0, 60,0.55);
 }
 
 .notfound-cursor {
@@ -432,7 +457,7 @@ input:focus-visible {
 }
 
 .identity-box:hover {
-  box-shadow: 0 0 14px rgba(255,25,55,0.35);
+  box-shadow: 0 0 14px rgba(255, 0, 60,0.35);
   transform: translateY(-1px);
 }
 
@@ -462,7 +487,7 @@ input:focus-visible {
 
 .logout-btn {
   padding: 13px 26px;
-  background: rgba(255,25,55,0.06);
+  background: rgba(255, 0, 60,0.06);
   border: 1px solid var(--red);
   color: var(--red);
   font-family: var(--font-display);
@@ -472,14 +497,14 @@ input:focus-visible {
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.15s;
-  box-shadow: 0 0 10px rgba(255,25,55,0.25);
+  box-shadow: 0 0 10px rgba(255, 0, 60,0.25);
 }
 
 .logout-btn:hover {
   background: var(--red);
   color: var(--void);
   border-color: var(--red);
-  box-shadow: 0 0 20px rgba(255,25,55,0.65);
+  box-shadow: 0 0 20px rgba(255, 0, 60,0.65);
 }
 
 .title-band {
@@ -589,7 +614,7 @@ input:focus-visible {
 }
 
 .stat-card:hover {
-  box-shadow: 0 0 18px rgba(255,25,55,0.35), inset 0 0 20px rgba(255,25,55,0.06);
+  box-shadow: 0 0 18px rgba(255, 0, 60,0.35), inset 0 0 20px rgba(255, 0, 60,0.06);
   transform: translateY(-2px);
 }
 
@@ -645,10 +670,10 @@ input:focus-visible {
    a constant wobble. --glitch-delay is set per-element from js/boot.js so
    every label on the page doesn't glitch in the same frame */
 @keyframes label-glitch {
-  0%, 93%, 100% { transform: translate(0, 0); text-shadow: 0 0 8px rgba(255,25,55,0.4); }
-  94% { transform: translate(-1px, 0); text-shadow: 1px 0 0 #00e8ff, -1px 0 0 var(--red); }
-  95% { transform: translate(1px, 0); text-shadow: -1px 0 0 #00e8ff, 1px 0 0 var(--red); opacity: 0.7; }
-  96% { transform: translate(0, 0); text-shadow: 0 0 8px rgba(255,25,55,0.4); }
+  0%, 93%, 100% { transform: translate(0, 0); text-shadow: 0 0 8px rgba(255, 0, 60,0.4); }
+  94% { transform: translate(-1px, 0); text-shadow: 1px 0 0 #00f0ff, -1px 0 0 var(--red); }
+  95% { transform: translate(1px, 0); text-shadow: -1px 0 0 #00f0ff, 1px 0 0 var(--red); opacity: 0.7; }
+  96% { transform: translate(0, 0); text-shadow: 0 0 8px rgba(255, 0, 60,0.4); }
 }
 
 .stat-card .stat-value {
@@ -658,7 +683,7 @@ input:focus-visible {
   color: var(--ice);
   line-height: 1.1;
   margin-top: 8px;
-  text-shadow: 0 0 12px rgba(255,25,55,0.35);
+  text-shadow: 0 0 12px rgba(255, 0, 60,0.35);
   position: relative;
   flex: 1;
   display: flex;
@@ -713,7 +738,7 @@ input:focus-visible {
 }
 
 .chart-card:hover {
-  box-shadow: 0 0 20px rgba(255,25,55,0.3);
+  box-shadow: 0 0 20px rgba(255, 0, 60,0.3);
 }
 
 /* skillsChart / passFailChart / auditGauge */
@@ -731,7 +756,7 @@ input:focus-visible {
   text-transform: uppercase;
   color: var(--red);
   margin-bottom: 6px;
-  text-shadow: 0 0 8px rgba(255,25,55,0.4);
+  text-shadow: 0 0 8px rgba(255, 0, 60,0.4);
   position: relative;
   animation: label-glitch 9s infinite;
   animation-delay: var(--glitch-delay, 0s);
@@ -759,7 +784,7 @@ input:focus-visible {
 .source-btn {
   width: 100%;
   padding: 9px 12px;
-  background: rgba(255,25,55,0.04);
+  background: rgba(255, 0, 60,0.04);
   border: 1px solid var(--panel-line);
   border-left: 3px solid var(--src-color, var(--red));
   color: var(--ice-dim);
@@ -847,7 +872,7 @@ input:focus-visible {
   line-height: 1.6;
 }
 
-.lore-corner .lore-line span { color: var(--red); }
+.lore-corner .lore-line span { color: var(--cyan); }
 
 .lore-corner .lore-flicker {
   animation: flicker 5s infinite;
@@ -909,7 +934,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   stroke-linejoin: round;
   stroke-linecap: round;
   opacity: 0;
-  filter: drop-shadow(0 0 1px var(--red)) drop-shadow(0 0 3px rgba(255, 25, 55, 0.35));
+  filter: drop-shadow(0 0 1px var(--red)) drop-shadow(0 0 3px rgba(255, 0, 60, 0.35));
   transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -921,9 +946,9 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 .split-crack.split-crack-fade { transition: opacity 0.2s ease; opacity: 0; }
 
 @keyframes split-crack-glow {
-  0%   { filter: drop-shadow(0 0 1px var(--red)) drop-shadow(0 0 3px rgba(255, 25, 55, 0.35)); }
-  60%  { filter: drop-shadow(0 0 3px var(--red)) drop-shadow(0 0 14px rgba(255, 25, 55, 0.9)); }
-  100% { filter: drop-shadow(0 0 4px var(--red)) drop-shadow(0 0 22px rgba(255, 25, 55, 1)); }
+  0%   { filter: drop-shadow(0 0 1px var(--red)) drop-shadow(0 0 3px rgba(255, 0, 60, 0.35)); }
+  60%  { filter: drop-shadow(0 0 3px var(--red)) drop-shadow(0 0 14px rgba(255, 0, 60, 0.9)); }
+  100% { filter: drop-shadow(0 0 4px var(--red)) drop-shadow(0 0 22px rgba(255, 0, 60, 1)); }
 }
 
 .neural-split {
@@ -938,7 +963,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   position: absolute;
   inset: 0;
   background: var(--void);
-  filter: drop-shadow(0 0 3px var(--red)) drop-shadow(0 0 14px rgba(255, 25, 55, 0.6));
+  filter: drop-shadow(0 0 3px var(--red)) drop-shadow(0 0 14px rgba(255, 0, 60, 0.6));
   transition: transform 0.65s cubic-bezier(0.6, 0, 0.15, 1);
 }
 
@@ -957,7 +982,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   color: var(--flag);
   text-transform: uppercase;
   margin-top: 3px;
-  text-shadow: 0 0 8px rgba(242, 210, 25, 0.55);
+  text-shadow: 0 0 8px rgba(252, 238, 10, 0.55);
 }
 
 .identity-uptime {
@@ -996,7 +1021,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   text-overflow: clip;
 }
 
-.uplink-log .log-line::before { content: "$ "; color: var(--red); }
+.uplink-log .log-line::before { content: "$ "; color: var(--cyan); }
 
 /* STREET CRED (right column, xp, rank blah blah) */
 
@@ -1010,7 +1035,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   font-weight: 700;
   letter-spacing: 0.18em;
   color: var(--flag);
-  text-shadow: 0 0 8px rgba(242, 210, 25, 0.55);
+  text-shadow: 0 0 8px rgba(252, 238, 10, 0.55);
 }
 
 .cred-title {
@@ -1018,7 +1043,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   font-size: 22px;
   font-weight: 700;
   color: var(--ice);
-  text-shadow: 0 0 14px rgba(255,25,55,0.55);
+  text-shadow: 0 0 14px rgba(255, 0, 60,0.55);
   margin-top: 2px;
 }
 
@@ -1041,7 +1066,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 .cred-bar-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--red-deep), var(--red));
-  box-shadow: 0 0 8px rgba(255,25,55,0.6);
+  box-shadow: 0 0 8px rgba(255, 0, 60,0.6);
   transition: width 0.6s ease;
 }
 
@@ -1094,8 +1119,8 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   text-align: right;
   padding: 8px 14px;
   border: 1px solid var(--panel-line);
-  border-right: 3px solid var(--red);
-  background: rgba(255,25,55,0.05);
+  border-right: 3px solid var(--magenta);
+  background: rgba(255, 32, 121, 0.05);
   flex-shrink: 0;
 }
 
@@ -1143,7 +1168,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   border: 1px solid var(--panel-line);
   border-right: 2px solid var(--red);
   flex-shrink: 0;
-  background: rgba(255,25,55,0.05);
+  background: rgba(255, 0, 60,0.05);
 }
 
 .detail-avatar-info { min-width: 0; }
@@ -1458,7 +1483,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 }
 
 .magnify-clone.is-lifted {
-  box-shadow: 0 0 40px rgba(255,25,55,0.45), 0 0 90px rgba(0,0,0,0.6);
+  box-shadow: 0 0 40px rgba(255, 0, 60,0.45), 0 0 90px rgba(0,0,0,0.6);
   animation: fov-push 0.42s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1482,7 +1507,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   align-items: center;
   justify-content: center;
   background: rgba(3, 3, 4, 0.75);
-  border: 1px solid var(--red-dim, rgba(255,25,55,0.5));
+  border: 1px solid var(--red-dim, rgba(255, 0, 60,0.5));
   color: var(--ice, #e8f6ff);
   font-size: 13px;
   line-height: 1;
@@ -1495,7 +1520,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 .magnify-clone.is-lifted .magnify-close { opacity: 0.85; }
 
 .magnify-close:hover {
-  background: var(--red, #ff1937);
+  background: var(--red, #ff003c);
   color: #fff;
   opacity: 1;
 }
@@ -1517,7 +1542,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   font-size: 15px;
   letter-spacing: 0.22em;
   color: var(--red);
-  text-shadow: 0 0 10px rgba(255,25,55,0.4);
+  text-shadow: 0 0 10px rgba(255, 0, 60,0.4);
 }
 
 .magnify-clone.magnify-row-clone .v {
@@ -1526,7 +1551,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   font-weight: 700;
   color: var(--ice);
   line-height: 1.15;
-  text-shadow: 0 0 18px rgba(255,25,55,0.4);
+  text-shadow: 0 0 18px rgba(255, 0, 60,0.4);
   word-break: break-word;
 }
 
@@ -1579,7 +1604,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 .tx-log-row.tx-log-danger {
   color: var(--red);
   font-weight: 700;
-  text-shadow: 0 0 8px rgba(255, 25, 55, 0.6);
+  text-shadow: 0 0 8px rgba(255, 0, 60, 0.6);
   animation: tx-danger-flicker 0.12s steps(1) 3;
 }
 
@@ -1605,7 +1630,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 
 .tx-scanning {
   border-color: var(--red);
-  box-shadow: 0 0 30px rgba(255, 25, 55, 0.35);
+  box-shadow: 0 0 30px rgba(255, 0, 60, 0.35);
 }
 
 
@@ -1772,7 +1797,7 @@ body.sdv-burst-active::after {
 
 .tx-flash-ok {
   color: var(--ok);
-  text-shadow: 0 0 24px rgba(33, 230, 161, 0.7);
+  text-shadow: 0 0 24px rgba(57, 255, 143, 0.7);
 }
 
 @keyframes tx-flash-pop {
@@ -1797,7 +1822,7 @@ body.sdv-burst-active::after {
 
 .tx-intrusion-glitch {
   border-color: var(--red) !important;
-  box-shadow: 0 0 40px rgba(255, 25, 55, 0.8) inset, 0 0 30px rgba(255, 25, 55, 0.6);
+  box-shadow: 0 0 40px rgba(255, 0, 60, 0.8) inset, 0 0 30px rgba(255, 0, 60, 0.6);
   animation: tx-intrusion-shake 0.15s steps(2) infinite;
 }
 
@@ -1930,7 +1955,7 @@ body.sdv-burst-active::after {
   opacity: 0;
   transform: translateY(-4px);
   transition: opacity 0.25s ease, transform 0.25s ease;
-  text-shadow: 0 0 10px rgba(255, 25, 55, 0.65);
+  text-shadow: 0 0 10px rgba(255, 0, 60, 0.65);
 }
 
 .bw-restricted-label.show {
@@ -1966,7 +1991,7 @@ body.sdv-burst-active::after {
   flex-direction: column;
   background: var(--panel);
   border: 1px solid var(--panel-line);
-  box-shadow: 0 0 0 1px rgba(255, 25, 55, 0.15), 0 0 40px rgba(255, 25, 55, 0.25);
+  box-shadow: 0 0 0 1px rgba(255, 0, 60, 0.15), 0 0 40px rgba(255, 0, 60, 0.25);
   font-family: var(--font-mono);
 }
 
@@ -2017,7 +2042,7 @@ body.sdv-burst-active::after {
 .bw-terminal-error { color: var(--red); }
 .bw-terminal-cryptic { color: var(--flag); }
 .bw-terminal-ok { color: var(--ok); }
-.bw-terminal-warn { color: var(--flag); text-shadow: 0 0 6px rgba(242, 210, 25, 0.4); }
+.bw-terminal-warn { color: var(--flag); text-shadow: 0 0 6px rgba(252, 238, 10, 0.4); }
 
 .bw-terminal-inputline {
   display: flex;
@@ -2061,12 +2086,12 @@ body.sdv-burst-active::after {
 
 .bw-chart-bar {
   color: var(--red);
-  text-shadow: 0 0 6px rgba(255, 25, 55, 0.45);
+  text-shadow: 0 0 6px rgba(255, 0, 60, 0.45);
 }
 
 .bw-chart-row--you .bw-chart-bar {
   color: var(--flag);
-  text-shadow: 0 0 6px rgba(242, 210, 25, 0.5);
+  text-shadow: 0 0 6px rgba(252, 238, 10, 0.5);
 }
 
 .bw-chart-row--you .bw-chart-label,
