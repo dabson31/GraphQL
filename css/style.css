@@ -656,7 +656,11 @@ input:focus-visible {
 }
 
 .stat-card .stat-label {
-  font-size: 9px;
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--red);
@@ -749,8 +753,10 @@ input:focus-visible {
 }
 
 .chart-card .chart-title {
-  align-self: flex-start;
-  font-size: 10.5px;
+  align-self: center;
+  width: 100%;
+  text-align: center;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -763,7 +769,10 @@ input:focus-visible {
 }
 
 .hero-graph .chart-title {
-  font-size: 13px;
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 15px;
 }
 
 /* data source toggle, fills the empty space under the skill matrix */
@@ -1270,8 +1279,8 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 .stat-outline {
   display: inline-block;
   margin-top: 4px;
-  padding: 2px 8px;
-  font-size: 9px;
+  padding: 3px 10px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--icon-color, var(--flag));
@@ -1299,7 +1308,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 }
 
 .stat-split-item .stat-value {
-  font-size: 30px;
+  font-size: 38px;
 }
 
 .stat-split-divider {
@@ -1325,9 +1334,9 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 .center-visuals > * { flex: 1; }
 
 /* left column carries three panels (skill matrix, data source toggle, uplink log)  */
-.center-visuals:not(.right) > .chart-card:first-child { flex: 1.1; }
+.center-visuals:not(.right) > .chart-card:first-child { flex: 0.85; }
 .center-visuals:not(.right) > .source-toggle-card { flex: 0.7; }
-.center-visuals:not(.right) > .uplink-card { flex: 1.2; }
+.center-visuals:not(.right) > .uplink-card { flex: 1.45; }
 
 /* street cred content: (rank panel + divider + system readout)*/
 .center-visuals.right .cred-card { flex: 1.6; }

@@ -45,9 +45,12 @@ const SOURCE_LABELS = {
 
 function buildPathClause(source) {
   source = normalizeSource(source);
-  if (source === "module") return MODULE_ONLY_FILTER;
+  if (source === "module") return MODULE_XP_FILTER;
   const patterns = SOURCE_PATTERNS[source] || [source];
   const or = patterns.map(p => `{ path: { _ilike: "%${p}%" } }`).join(", ");
+  if (source === "piscine-js") {
+    return `_or: [${or}], _not: { amount: { _eq: 70000 }, object: { name: { _eq: "Piscine JS" } } }`;
+  }
   return `_or: [${or}]`;
 }
 
@@ -450,7 +453,7 @@ async function loadUplinkLog(source) {
       transaction(
         where: { type: { _eq: "xp" }, ${buildPathClause(source)} }
         order_by: { createdAt: desc }
-        limit: 9
+        limit: 20
       ) {
         amount
         createdAt
