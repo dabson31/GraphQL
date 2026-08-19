@@ -3,6 +3,8 @@ const RED = "#ff003c";
 const ICE = "#f4f6f5";
 const FLAG = "#fcee0a";
 const CYAN = "#00f0ff";
+const BLUE = "#0080ff";
+const ORANGE = "#ff8c1a";
 const FAIL_COL = "#4a4a52";
 const GRID = "rgba(255,0,60,0.18)";
 
@@ -24,9 +26,10 @@ const SOURCE_PATTERNS = {
 
 const SOURCE_COLORS = {
   "module":       RED,
-  "piscine-go":   CYAN,
+  "piscine-go":   BLUE,
+  "bh-piscine":   BLUE,
   "piscine-js":   FLAG,
-  "piscine-rust": "#ff2079",
+  "piscine-rust": ORANGE,
 };
 
 //
@@ -39,6 +42,7 @@ function normalizeSource(source) {
 const SOURCE_LABELS = {
   "module":       "Module",
   "piscine-go":   "Piscine",
+  "bh-piscine":   "Piscine",
   "piscine-js":   "Piscine JS",
   "piscine-rust": "Piscine Rust",
 };

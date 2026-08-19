@@ -3,7 +3,7 @@ const MODULE_XP_FILTER = `_or: [{ ${MODULE_ONLY_FILTER} }, { amount: { _eq: 7000
 
 // fallback image used whenever a profile has no avatarUrl set - swap this
 // path/URL for whatever default picture you want to show
-const DEFAULT_AVATAR = "assets/default-avatar.svg";
+const DEFAULT_AVATAR = "assets/default-avatar.png";
 
 
 // street cred tiers (ranks), renamed to fit the theme

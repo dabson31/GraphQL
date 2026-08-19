@@ -2140,3 +2140,19 @@ body.sdv-burst-active::after {
     animation: none !important;
   }
 }
+
+.source-btn[data-source="module"] {
+  --src-color: #ff003c;
+}
+
+.source-btn[data-source="bh-piscine"] {
+  --src-color: #0080ff;
+}
+
+.source-btn[data-source="piscine-js"] {
+  --src-color: #fcee0a;
+}
+
+.source-btn[data-source="piscine-rust"] {
+  --src-color: #ff8c1a;
+}

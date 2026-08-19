@@ -1,6 +1,7 @@
 const MODULE_ONLY_FILTER = `path: { _nilike: "%piscine%" }`;
 const MODULE_XP_FILTER = `_or: [{ ${MODULE_ONLY_FILTER} }, { amount: { _eq: 70000 }, object: { name: { _eq: "Piscine JS" } } }]`;
 
+
 sessionStorage.removeItem("blackwall_profile_target");
 
 // street cred tiers (ranks), renamed to fit the theme
