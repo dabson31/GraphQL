@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BLACKWALL // PROFILE</title>
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body>
   <div class="bw-sweep"></div>
@@ -48,7 +48,7 @@
            with best skill under the log so it lines up with module xp and
            the hero substrip on the same bottom level -->
       <div class="center-visuals">
-        <div class="chart-card hud-frame interactive-panel" data-magnify>
+        <div class="chart-card hud-frame interactive-panel matrix-match" data-magnify>
           <span class="chart-title">Skill Matrix</span>
           <svg id="skillsChart" viewBox="0 0 260 196"></svg>
         </div>
@@ -117,13 +117,31 @@
             </div>
           </div>
         </div>
+
+        <div class="chart-card hud-frame project-progress-card interactive-panel">
+          <span class="chart-title">Project Progress</span>
+          <div class="project-progress-wrap">
+            <div class="pp-row pp-header">
+              <div class="pp-col pp-col-path">Project Path</div>
+              <div class="pp-col pp-col-status">Status</div>
+              <div class="pp-col pp-col-captain">Captain</div>
+              <div class="pp-col pp-col-xp">XP</div>
+            </div>
+            <div class="pp-body" id="projectProgress"></div>
+          </div>
+          <div class="project-progress-pagination" id="projectProgressPagination">
+            <button type="button" class="pp-page-btn" id="ppPrevBtn" aria-label="Previous page">‹</button>
+            <span class="pp-page-label" id="ppPageLabel">Page 1 / 1</span>
+            <button type="button" class="pp-page-btn" id="ppNextBtn" aria-label="Next page">›</button>
+          </div>
+        </div>
       </div>
 
       <!-- right column: pass/fail, audit gauge, street cred (with a system
            diagnostics readout tacked on below it), module xp — best skill
            now lives at the bottom of the left column instead -->
       <div class="center-visuals right">
-        <div class="chart-card hud-frame interactive-panel" data-magnify>
+        <div class="chart-card hud-frame interactive-panel matrix-match" data-magnify>
           <span class="chart-title">Pass / Fail</span>
           <svg id="passFailChart" viewBox="0 0 220 220"></svg>
         </div>
@@ -177,6 +195,7 @@
       <div class="lore-line" id="loreStatus">Chippin' in — connection secured via Afterlife relay node.</div>
     </div>
 
+
   </div>
 
   <script src="js/audio-fx.js"></script>
@@ -209,6 +228,7 @@
         // uplink log + the wide xp tile follow the same toggle, see charts.js
         loadUplinkLog(source);
         loadSourceXPStat(source);
+        loadProjectProgress(source);
       });
     });
 
@@ -337,6 +357,7 @@
     loadAuditGauge();
     loadUplinkLog("module");
     loadXPOverTimeChart("module");
+    loadProjectProgress();
   </script>
 </body>
 </html>

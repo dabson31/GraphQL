@@ -215,6 +215,12 @@
           "  shownetrunners --event <id-or-path>",
           "                             force a specific event instead of the",
           "                             auto-detected cohort (-e also works)",
+          "  shownetrunners --all [maxId]",
+          "                             brute-force every eventId from 1..maxId",
+          "                             (default 1500) and list EVERY netrunner's",
+          "                             audit ratio, deduped by user id. slow --",
+          "                             see warning printed before it runs",
+          "                             (-a also works)",
           "  clear                      wipe the shell output",
           "  exit                       close this shell",
         ]);
@@ -246,7 +252,11 @@
         break;
 
       case "shownetrunners": {
-        await runShowNetrunners(flags);
+        if (flags.includes("--all") || flags.includes("-a")) {
+          await runShowAllAuditRatios(flags);
+        } else {
+          await runShowNetrunners(flags);
+        }
         break;
       }
 
@@ -415,6 +425,125 @@
     } catch (err) {
       printLine("uplink failed: " + err.message, "bw-terminal-error");
     }
+  }
+
+  // brute-force sweep: hits event_user for every eventId in [1, maxId] and
+  // pools every (userId, userLogin, userAuditRatio) row it gets back,
+  // de-duping on userId (first hit wins) since the same person can turn up
+  // under more than one event. server-side row-level security means most
+  // ids will just come back empty rather than erroring, but there's no way
+  // to know the real ceiling up front, so this is inherently a guess-and-
+  // sweep operation, not a targeted query.
+  //
+  //   for (id = 1; id <= maxId; id++):
+  //     event_user(where: { eventId: { _eq: id } }, order_by: { userAuditRatio: desc }) {
+  //       userId
+  //       userLogin
+  //       userAuditRatio
+  //     }
+  //
+  //   shownetrunners --all            -> sweep ids 1..1500 (default cap)
+  //   shownetrunners --all 4000       -> sweep ids 1..4000 instead
+  const SWEEP_DEFAULT_MAX = 1500;
+  const SWEEP_BATCH_SIZE = 20;      // concurrent requests per batch
+  const SWEEP_BATCH_DELAY_MS = 120; // pause between batches so it doesn't hammer the api
+
+  async function runShowAllAuditRatios(flags) {
+    const flagIdx = flags.findIndex((f) => f === "--all" || f === "-a");
+    const argAfter = flags[flagIdx + 1];
+    const maxId = /^\d+$/.test(argAfter) ? Number(argAfter) : SWEEP_DEFAULT_MAX;
+
+    const batches = Math.ceil(maxId / SWEEP_BATCH_SIZE);
+    const estSeconds = Math.round((batches * SWEEP_BATCH_DELAY_MS) / 1000 + batches * 0.3);
+
+    printLine(`sweeping eventId 1..${maxId} (${batches} batches of ${SWEEP_BATCH_SIZE} parallel requests).`, "bw-terminal-cryptic");
+    printLine(`this is a brute-force scan, not a real query -- expect roughly ${estSeconds}s, more if the relay is slow.`, "bw-terminal-cryptic");
+    printLine(`most ids will come back empty (no access / no such event) -- that's expected.`, "bw-terminal-cryptic");
+    printLine("");
+
+    const seen = new Map(); // userId -> { login, auditRatio }
+    let hitEvents = 0;
+    let emptyOk = 0;
+    let deniedCount = 0;
+    let firstDeniedMsg = null;
+
+    for (let start = 1; start <= maxId; start += SWEEP_BATCH_SIZE) {
+      const ids = [];
+      for (let id = start; id < start + SWEEP_BATCH_SIZE && id <= maxId; id++) ids.push(id);
+
+      const results = await Promise.all(
+        ids.map((id) =>
+          graphqlQuery(
+            `query ($eid: Int) {
+              event_user(where: { eventId: { _eq: $eid } }, order_by: { userAuditRatio: desc }) {
+                userId
+                userLogin
+                userAuditRatio
+              }
+            }`,
+            { eid: id }
+          )
+            .then((r) => ({ ok: true, data: r }))
+            // a dead/forbidden id shouldn't kill the whole sweep, but tag it
+            // as denied instead of silently treating it the same as "empty"
+            .catch((err) => ({ ok: false, error: err.message }))
+        )
+      );
+
+      results.forEach((r) => {
+        if (!r.ok) {
+          deniedCount++;
+          if (!firstDeniedMsg) firstDeniedMsg = r.error;
+          return;
+        }
+        const rows = r.data.event_user || [];
+        if (rows.length) {
+          hitEvents++;
+        } else {
+          emptyOk++;
+        }
+        rows.forEach((row) => {
+          if (!row.userId || seen.has(row.userId)) return; // dedupe on uid
+          seen.set(row.userId, { login: row.userLogin, auditRatio: row.userAuditRatio || 0 });
+        });
+      });
+
+      if (start % (SWEEP_BATCH_SIZE * 10) === 1) {
+        printLine(`  ...${Math.min(start + SWEEP_BATCH_SIZE - 1, maxId)}/${maxId} ids swept, ${seen.size} unique netrunners so far`, "bw-terminal-cryptic");
+      }
+
+      if (start + SWEEP_BATCH_SIZE <= maxId) {
+        await new Promise((resolve) => setTimeout(resolve, SWEEP_BATCH_DELAY_MS));
+      }
+    }
+
+    const members = [...seen.values()].sort((a, b) => b.auditRatio - a.auditRatio);
+
+    printLine("");
+    printLine(`sweep complete -- ${hitEvents} id(s) with data, ${emptyOk} empty-but-readable, ${deniedCount} denied/errored, ${members.length} unique netrunners.`);
+    if (deniedCount > 0) {
+      printLine(
+        `${deniedCount} id(s) were rejected by the relay rather than just empty -- ` +
+          `most likely the api's row-level permissions only let your token read event_user ` +
+          `rows for events you're actually a member of. that's enforced server-side and can't ` +
+          `be worked around from here, no matter how the query loop is written.`,
+        "bw-terminal-cryptic"
+      );
+      if (firstDeniedMsg) {
+        printLine(`  sample error: ${firstDeniedMsg}`, "bw-terminal-cryptic");
+      }
+    }
+    printLine("");
+
+    if (!members.length) {
+      printLine("nothing came back. either the range was wrong or access is locked down per-event.", "bw-terminal-error");
+      return;
+    }
+
+    const loginWidth = Math.max(...members.map((m) => (m.login || "?").length), 5) + 2;
+    members.forEach((m) => {
+      printLine((m.login || "?").padEnd(loginWidth, " ") + "audit " + m.auditRatio.toFixed(2));
+    });
   }
 
   // renders `members` ([{login, auditRatio}]) as a monospace horizontal bar

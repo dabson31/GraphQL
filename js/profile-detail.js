@@ -219,6 +219,7 @@ async function loadProfileDetail() {
   document.getElementById("d-login").textContent = login;
   document.getElementById("d-id").textContent = userId;
   document.getElementById("d-xp").textContent = formatXP(rawXP);
+  document.getElementById("d-xp").closest(".detail-row").style.display = isSelf ? "flex" : "none";
   document.getElementById("d-audit").textContent = ratio.toFixed(1);
   document.getElementById("d-threat").textContent = threatFromRatio(ratio);
 
@@ -238,6 +239,7 @@ async function loadProfileDetail() {
   document.getElementById("d-since").textContent = firstDate
     ? firstDate.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
     : "unknown";
+  document.getElementById("d-since").closest(".detail-row").style.display = isSelf ? "flex" : "none";
 
   const level = computeLevel(rawXP);
   document.getElementById("d-rank").textContent = `LVL ${level.level} · ${rank.current.title}`;
@@ -284,10 +286,10 @@ async function loadProfileDetail() {
     }
   }
 
-  renderPublicDossier(login, pub, cohortAuditRatio);
+  renderPublicDossier(login, pub, cohortAuditRatio, isSelf);
 }
 
-function renderPublicDossier(login, pub, cohortAuditRatio) {
+function renderPublicDossier(login, pub, cohortAuditRatio, isSelf) {
   const fullName = [pub.firstName, pub.lastName].filter(Boolean).join(" ");
 
   document.getElementById("d-name").textContent = fullName || login;
@@ -299,7 +301,7 @@ function renderPublicDossier(login, pub, cohortAuditRatio) {
     this.src = DEFAULT_AVATAR;
   };
 
-  if (typeof cohortAuditRatio === "number") {
+  if (isSelf && typeof cohortAuditRatio === "number") {
     document.getElementById("d-cohort-audit").textContent = cohortAuditRatio.toFixed(2);
     document.getElementById("d-cohort-audit-row").style.display = "flex";
   } else {

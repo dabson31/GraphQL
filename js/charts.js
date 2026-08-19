@@ -283,6 +283,297 @@ window.addEventListener("resize", () => {
   heroResizeTimer = setTimeout(() => drawXPHero(lastHeroPoints, lastHeroColor), 150);
 });
 
+const PP_PAGE_SIZE = 5;
+let ppGroups = [];
+let ppPage = 0;
+let ppSource = "module";
+
+const PP_STATUS_MAP = {
+  setup: { label: "Starting", cls: "status-setup" },
+  working: { label: "In progress", cls: "status-working" },
+  finished: { label: "Finished", cls: "status-finished" },
+  audit: { label: "Auditing", cls: "status-audit" },
+};
+
+async function loadProjectProgress(source) {
+  const tbody = document.getElementById("projectProgress");
+  if (!tbody) return;
+
+  ppSource = normalizeSource(source || ppSource || "module");
+
+  if (ppSource === "module") {
+    await loadModuleProjects(tbody);
+  } else {
+    await loadPiscineCamps(tbody, ppSource);
+  }
+}
+
+async function loadModuleProjects(tbody) {
+  const query = `
+    {
+      user {
+        id
+        login
+      }
+      group(order_by: { createdAt: desc }) {
+        id
+        path
+        status
+        captainId
+        object {
+          name
+        }
+        members {
+          userId
+          userLogin
+        }
+      }
+    }
+  `;
+
+  let data;
+  try {
+    data = await graphqlQuery(query);
+  } catch (e) {
+    tbody.innerHTML = '<div class="project-progress-empty">// unable to reach group feed</div>';
+    setPpPaginationVisible(false);
+    return;
+  }
+
+  const me = (data.user || [])[0];
+  const myId = me ? me.id : null;
+
+  // module projects only, piscine paths are excluded here since piscines
+  // get their own camp-level rows in loadPiscineCamps instead
+  const piscineSources = Object.keys(SOURCE_LABELS).filter(s => s !== "module");
+  const piscinePatterns = piscineSources.flatMap(s => SOURCE_PATTERNS[s] || [s]);
+  ppGroups = (data.group || []).filter(g => {
+    if (!(g.members || []).some(m => m.userId === myId)) return false;
+    const path = g.path || "";
+    return !piscinePatterns.some(p => path.includes(p));
+  });
+  ppGroups.forEach(g => { g.__myId = myId; g.__xp = 0; g.__type = "group"; });
+  ppPage = 0;
+
+  if (!ppGroups.length) {
+    tbody.innerHTML = '<div class="project-progress-empty">// no project groups on record for this feed</div>';
+    setPpPaginationVisible(false);
+    return;
+  }
+
+  await attachProjectXP(ppGroups);
+
+  bindPpPaginationControls();
+  renderProjectProgressPage();
+}
+
+// piscines aren't tracked as team "projects" the way module work is, so
+// instead of listing groups, pull the same xp feed the graph/log use for
+// this source and roll it up by camp (piscine run) instead of by exercise
+async function loadPiscineCamps(tbody, source) {
+  const query = `
+    {
+      transaction(where: { type: { _eq: "xp" }, ${buildPathClause(source)} }) {
+        amount
+        path
+        createdAt
+      }
+    }
+  `;
+
+  let data;
+  try {
+    data = await graphqlQuery(query);
+  } catch (e) {
+    tbody.innerHTML = '<div class="project-progress-empty">// unable to reach xp feed</div>';
+    setPpPaginationVisible(false);
+    return;
+  }
+
+  const patterns = SOURCE_PATTERNS[source] || [source];
+  const camps = {};
+  (data.transaction || []).forEach(t => {
+    const key = campKeyForPath(t.path || "", patterns);
+    if (!camps[key]) {
+      camps[key] = { path: key, xp: 0, firstAt: t.createdAt, lastAt: t.createdAt };
+    }
+    camps[key].xp += t.amount;
+    if (t.createdAt < camps[key].firstAt) camps[key].firstAt = t.createdAt;
+    if (t.createdAt > camps[key].lastAt) camps[key].lastAt = t.createdAt;
+  });
+
+  ppGroups = Object.values(camps)
+    .sort((a, b) => new Date(b.lastAt) - new Date(a.lastAt))
+    .map(c => ({
+      __type: "camp",
+      __xp: c.xp,
+      path: c.path,
+      name: c.path.split("/").pop(),
+      status: "finished",
+    }));
+  ppPage = 0;
+
+  if (!ppGroups.length) {
+    tbody.innerHTML = '<div class="project-progress-empty">// no xp on record for this feed</div>';
+    setPpPaginationVisible(false);
+    return;
+  }
+
+  bindPpPaginationControls();
+  renderProjectProgressPage();
+}
+
+// piscine transactions are already recorded at the individual exercise/part
+// level, so use the full path as-is rather than collapsing multiple parts
+// of the same quest into one row
+function campKeyForPath(path, patterns) {
+  return path;
+}
+
+async function attachProjectXP(groups) {
+  const paths = groups.map(g => g.path).filter(Boolean);
+  if (!paths.length) return;
+
+  const xpQuery = `
+    {
+      transaction(where: { type: { _eq: "xp" }, path: { _in: ${JSON.stringify(paths)} } }) {
+        amount
+        path
+      }
+    }
+  `;
+
+  let xpData;
+  try {
+    xpData = await graphqlQuery(xpQuery);
+  } catch (e) {
+    return;
+  }
+
+  const xpByPath = {};
+  (xpData.transaction || []).forEach(t => {
+    xpByPath[t.path] = (xpByPath[t.path] || 0) + t.amount;
+  });
+
+  groups.forEach(g => { g.__xp = xpByPath[g.path] || 0; });
+}
+
+function setPpPaginationVisible(visible) {
+  const pag = document.getElementById("projectProgressPagination");
+  if (pag) pag.style.display = visible ? "" : "none";
+}
+
+let ppControlsBound = false;
+function bindPpPaginationControls() {
+  if (ppControlsBound) return;
+  ppControlsBound = true;
+  const prevBtn = document.getElementById("ppPrevBtn");
+  const nextBtn = document.getElementById("ppNextBtn");
+  if (prevBtn) {
+    prevBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (ppPage > 0) { ppPage--; renderProjectProgressPage(); }
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const maxPage = Math.max(0, Math.ceil(ppGroups.length / PP_PAGE_SIZE) - 1);
+      if (ppPage < maxPage) { ppPage++; renderProjectProgressPage(); }
+    });
+  }
+}
+
+function renderProjectProgressPage() {
+  const tbody = document.getElementById("projectProgress");
+  if (!tbody) return;
+
+  const totalPages = Math.max(1, Math.ceil(ppGroups.length / PP_PAGE_SIZE));
+  ppPage = Math.max(0, Math.min(ppPage, totalPages - 1));
+
+  const start = ppPage * PP_PAGE_SIZE;
+  const pageGroups = ppGroups.slice(start, start + PP_PAGE_SIZE);
+
+  tbody.innerHTML = "";
+  pageGroups.forEach(g => {
+    tbody.appendChild(buildProjectProgressRow(g));
+  });
+
+  setPpPaginationVisible(ppGroups.length > PP_PAGE_SIZE);
+  const label = document.getElementById("ppPageLabel");
+  if (label) label.textContent = `Page ${ppPage + 1} / ${totalPages}`;
+  const prevBtn = document.getElementById("ppPrevBtn");
+  const nextBtn = document.getElementById("ppNextBtn");
+  if (prevBtn) prevBtn.disabled = ppPage === 0;
+  if (nextBtn) nextBtn.disabled = ppPage >= totalPages - 1;
+}
+
+function buildProjectProgressRow(g) {
+  const isCamp = g.__type === "camp";
+  const myId = g.__myId;
+  const name = isCamp
+    ? (g.name || "unknown")
+    : ((g.object && g.object.name) ? g.object.name : (g.path || "unknown").split("/").pop());
+  const statusKey = (g.status || "").toLowerCase();
+  const status = PP_STATUS_MAP[statusKey] || { label: g.status || "Unknown", cls: "status-unknown" };
+
+  const captainMember = isCamp ? null : (g.members || []).find(m => m.userId === g.captainId);
+  const isMeCaptain = !isCamp && g.captainId === myId;
+  const captainLogin = captainMember ? captainMember.userLogin : "unknown";
+
+  const row = document.createElement("div");
+  row.className = "pp-row pp-item-row";
+
+  const pathCol = document.createElement("div");
+  pathCol.className = "pp-col pp-col-path";
+  const nameEl = document.createElement("div");
+  nameEl.className = "project-progress-name";
+  nameEl.textContent = name;
+  const pathEl = document.createElement("div");
+  pathEl.className = "project-progress-path";
+  pathEl.textContent = g.path || "";
+  pathCol.appendChild(nameEl);
+  pathCol.appendChild(pathEl);
+
+  const statusCol = document.createElement("div");
+  statusCol.className = "pp-col pp-col-status";
+  const statusEl = document.createElement("span");
+  statusEl.className = "project-progress-status " + status.cls;
+  statusEl.textContent = status.label;
+  statusCol.appendChild(statusEl);
+
+  const captainCol = document.createElement("div");
+  captainCol.className = "pp-col pp-col-captain project-progress-captain";
+  captainCol.textContent = isCamp ? "Part" : (isMeCaptain ? "Me" : captainLogin);
+
+  const xpCol = document.createElement("div");
+  xpCol.className = "pp-col pp-col-xp project-progress-xp";
+  const isFinished = statusKey === "finished";
+  if (g.__xp) {
+    const xpAmount = document.createElement("span");
+    xpAmount.className = "pp-xp-amount";
+    xpAmount.textContent = `${formatXP(g.__xp)} XP`;
+    xpCol.appendChild(xpAmount);
+  } else {
+    const xpDash = document.createElement("span");
+    xpDash.className = "pp-xp-amount";
+    xpDash.textContent = "--";
+    xpCol.appendChild(xpDash);
+  }
+  if (!isFinished) {
+    const pending = document.createElement("span");
+    pending.className = "pp-xp-pending";
+    pending.textContent = "not received";
+    xpCol.appendChild(pending);
+  }
+
+  row.appendChild(pathCol);
+  row.appendChild(statusCol);
+  row.appendChild(captainCol);
+  row.appendChild(xpCol);
+  return row;
+}
+
 async function loadSkillsChart() {
   const query = `
     {
@@ -355,18 +646,49 @@ function drawHexRadar(skills) {
     const dot = svgEl("circle", { cx: x, cy: y, r: 5, fill: RED, class: "hoverable-dot", style: "filter: drop-shadow(0 0 3px rgba(255,0,60,0.85));" });
     svg.appendChild(dot);
 
-    // wider invisible hit target so the small dot is easy to hover
-    const hit = svgEl("circle", { cx: x, cy: y, r: 11, fill: "transparent", style: "cursor: pointer;" });
-    hit.addEventListener("mouseenter", (e) => {
-      dot.setAttribute("r", 7);
-      showTooltip(e, `<div class="tt-title">${escapeHtml(s.label)}</div><div class="tt-sub">${s.value}%</div>`);
-    });
-    hit.addEventListener("mousemove", moveTooltip);
-    hit.addEventListener("mouseleave", () => {
-      dot.setAttribute("r", 5);
-      hideTooltip();
+    // wider invisible hit target so the small dot is easy to hover. this uses
+    // delegated mouseover/mouseout listeners (bound once, below) instead of
+    // per-element mouseenter/mouseleave, because the magnify feature clones
+    // this whole svg with cloneNode() when a card is lifted, and cloneNode
+    // never copies listeners bound directly to the original elements — the
+    // magnified version would otherwise show no hover at all.
+    const hit = svgEl("circle", {
+      cx: x, cy: y, r: 11, fill: "transparent", style: "cursor: pointer;",
+      class: "skill-hit",
+      "data-tt-title": escapeHtml(s.label),
+      "data-tt-value": `${s.value}%`,
     });
     svg.appendChild(hit);
+  });
+
+  bindSkillHoverDelegation();
+}
+
+// bound once on document so hover keeps working on the cloned/magnified
+// copy of the skills chart, not just the original in-page svg
+let skillHoverBound = false;
+function bindSkillHoverDelegation() {
+  if (skillHoverBound) return;
+  skillHoverBound = true;
+
+  document.addEventListener("mouseover", (e) => {
+    const hit = e.target.closest && e.target.closest(".skill-hit");
+    if (!hit) return;
+    const dot = hit.previousElementSibling;
+    if (dot) dot.setAttribute("r", 7);
+    showTooltip(e, `<div class="tt-title">${hit.getAttribute("data-tt-title")}</div><div class="tt-sub">${hit.getAttribute("data-tt-value")}</div>`);
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (e.target.closest && e.target.closest(".skill-hit")) moveTooltip(e);
+  });
+
+  document.addEventListener("mouseout", (e) => {
+    const hit = e.target.closest && e.target.closest(".skill-hit");
+    if (!hit) return;
+    const dot = hit.previousElementSibling;
+    if (dot) dot.setAttribute("r", 5);
+    hideTooltip();
   });
 }
 

@@ -136,14 +136,14 @@ body::after {
 
 .hud-frame::before {
   top: -1px; left: -1px;
-  border-top: 2px solid var(--red);
-  border-left: 2px solid var(--red);
+  border-top: 2px solid var(--icon-color, var(--red));
+  border-left: 2px solid var(--icon-color, var(--red));
 }
 
 .hud-frame::after {
   bottom: -1px; right: -1px;
-  border-bottom: 2px solid var(--red);
-  border-right: 2px solid var(--red);
+  border-bottom: 2px solid var(--icon-color, var(--red));
+  border-right: 2px solid var(--icon-color, var(--red));
 }
 
 /* glitch text */
@@ -614,7 +614,8 @@ input:focus-visible {
 }
 
 .stat-card.interactive-panel:hover {
-  box-shadow: 0 0 18px rgba(255, 0, 60,0.35), inset 0 0 20px rgba(255, 0, 60,0.06);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--icon-color, var(--red)) 35%, transparent),
+    inset 0 0 20px color-mix(in srgb, var(--icon-color, var(--red)) 6%, transparent);
   transform: translateY(-2px);
 }
 
@@ -663,7 +664,7 @@ input:focus-visible {
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--red);
+  color: var(--icon-color, var(--red));
   position: relative;
   animation: label-glitch 9s infinite;
   animation-delay: var(--glitch-delay, 0s);
@@ -687,7 +688,7 @@ input:focus-visible {
   color: var(--ice);
   line-height: 1.1;
   margin-top: 8px;
-  text-shadow: 0 0 12px rgba(255, 0, 60,0.35);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--icon-color, var(--red)) 35%, transparent);
   position: relative;
   flex: 1;
   display: flex;
@@ -775,6 +776,189 @@ input:focus-visible {
   width: 100%;
   text-align: center;
   font-size: 15px;
+}
+
+.project-progress-card {
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.project-progress-wrap {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.pp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pp-header {
+  flex: 0 0 auto;
+  padding: 4px 10px 8px;
+  border-bottom: 1px solid var(--panel-line);
+}
+
+.pp-header .pp-col {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ice-dim);
+}
+
+.pp-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pp-item-row {
+  flex: 1 1 0;
+  min-height: 34px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  border: 1px solid rgba(255, 0, 60, 0.16);
+  border-radius: 4px;
+  font-size: 13px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.pp-item-row:last-child { margin-bottom: 0; }
+.pp-item-row:hover { background: rgba(255, 0, 60, 0.04); border-color: rgba(255, 0, 60, 0.35); }
+
+.pp-item-row {
+  box-shadow: inset 4px 0 0 var(--red);
+  padding-left: 14px;
+}
+
+.pp-col-path { flex: 2 1 0; min-width: 0; }
+.pp-col-status { flex: 1 1 0; }
+.pp-col-captain { flex: 1 1 0; }
+.pp-col-xp { flex: 0 0 auto; min-width: 70px; text-align: right; }
+
+.project-progress-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ice);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-progress-path {
+  font-size: 10px;
+  color: var(--ice-dim);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-progress-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-size: 13px;
+}
+
+.status-setup { color: var(--cyan); }
+.status-working { color: #b26bff; }
+.status-finished { color: var(--ok); }
+.status-audit { color: var(--red); }
+.status-unknown { color: var(--ice-dim); }
+
+.project-progress-captain {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ice);
+}
+
+.project-progress-xp {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.pp-xp-amount {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--cyan);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.pp-xp-pending {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--flag, #fcee0a);
+  white-space: nowrap;
+}
+
+.project-progress-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px 10px;
+  font-size: 12px;
+  color: var(--ice-dim);
+}
+
+.project-progress-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding-top: 4px;
+  flex: 0 0 auto;
+}
+
+.pp-page-btn {
+  background: rgba(255, 0, 60, 0.06);
+  border: 1px solid var(--panel-line);
+  color: var(--ice);
+  font-size: 16px;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.pp-page-btn:hover:not(:disabled) {
+  background: rgba(255, 0, 60, 0.15);
+  box-shadow: 0 0 10px rgba(255, 0, 60, 0.3);
+}
+
+.pp-page-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.pp-page-label {
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--ice-dim);
+  min-width: 90px;
+  text-align: center;
 }
 
 /* data source toggle, fills the empty space under the skill matrix */
@@ -1133,6 +1317,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   border-right: 3px solid var(--magenta);
   background: rgba(255, 32, 121, 0.05);
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .badge-title {
@@ -1164,7 +1349,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 .detail-avatar-row {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 18px;
   padding: 10px 0 18px;
   border-bottom: 1px dashed var(--panel-line);
   margin-bottom: 6px;
@@ -1172,8 +1357,8 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 }
 
 .detail-avatar {
-  width: 56px;
-  height: 56px;
+  width: 95px;
+  height: 95px;
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid var(--panel-line);
@@ -1187,7 +1372,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 .detail-avatar-name {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 25px;
   color: var(--ice);
   white-space: nowrap;
   overflow: hidden;
@@ -1195,7 +1380,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 }
 
 .detail-avatar-campus {
-  font-size: 10px;
+  font-size: 17px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--ice-dim);
@@ -1222,8 +1407,10 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   .detail-panel h1 { font-size: 19px; }
   .detail-row { flex-direction: column; gap: 2px; padding: 10px 0; }
   .detail-row .v { text-align: left; }
-  .detail-avatar { width: 46px; height: 46px; }
-  .detail-avatar-name { font-size: 13px; }
+  .detail-avatar { width: 64px; height: 64px; }
+  .detail-avatar-name { font-size: 18px; }
+  .detail-avatar-campus { font-size: 12px; }
+  .detail-rank-badge { margin-left: 0; text-align: left; }
 }
 
 .detail-row .k {
@@ -1335,15 +1522,19 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 
 .center-visuals > * { flex: 1; }
 
-/* left column carries four panels (skill matrix, data source toggle, uplink
-   log, best skill) — the uplink log is trimmed and the skill matrix graph
-   shortened a touch so best skill fits underneath, fixed at the same
-   150px as module xp (right column) and the hero substrip (center column)
-   so all three sit on the same bottom level */
-.center-visuals:not(.right) > .chart-card:first-child { flex: 0.75; }
+/* left column carries a spacer, then skill matrix, data source toggle, uplink
+   log, best skill — the uplink log is trimmed so best skill fits underneath,
+   fixed at the same 150px as module xp (right column) and the hero substrip
+   (center column) so all three sit on the same bottom level */
 .center-visuals:not(.right) > .source-toggle-card { flex: 0.65; }
 .center-visuals:not(.right) > .uplink-card { flex: 0.85; }
 .center-visuals:not(.right) > .stat-card-wide { flex: 0 0 150px; }
+
+/* skill matrix (left) and pass/fail (right) pinned to an identical,
+   viewport-scaled height instead of a flex ratio — the two columns have
+   different numbers/weights of siblings, so equal flex-grow alone wouldn't
+   produce equal pixel heights */
+.matrix-match { flex: 0 0 clamp(220px, 28vh, 300px); }
 
 /* street cred content: (rank panel + divider + system readout)*/
 .center-visuals.right .cred-card { flex: 1.6; }
@@ -1355,9 +1546,20 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* stretches to match the left/right columns' height (default grid
+     stretch) so the piscine comparison card below can flex-grow into
+     whatever room that leaves under passed/failed */
 }
 
-.hero-graph { flex: 1; }
+/* no longer flex:1 + a fixed px cap — sized with clamp() (viewport-relative,
+   with sane min/max) so it scales across screen resolutions instead of
+   staying a fixed pixel height. lands roughly level with the bottom of the
+   uplink log in the left column, not the full column including best skill */
+.hero-graph {
+  flex: 0 1 clamp(340px, 46vh, 520px);
+  max-height: clamp(340px, 46vh, 520px);
+  min-height: 260px;
+}
 
 .hero-substrip {
   display: flex;
@@ -1366,6 +1568,10 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 }
 
 .hero-substrip .stat-card-half { flex: 1; }
+
+.hero-column {
+  min-height: 0;
+}
 
 @media (max-width: 1000px) {
   .hero-column { grid-column: 1 / 3; }
