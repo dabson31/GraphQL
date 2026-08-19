@@ -3,20 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BLACKWALL // UNAUTHORIZED</title>
-  <link rel="stylesheet" href="css/style.css">
+  <title>BLACKWALL // BREACH PROTOCOL</title>
+  <link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body>
   <div class="bw-sweep"></div>
 
-  <div class="login-wrap">
-    <div class="hud-frame" style="width:380px; padding:40px 36px 32px;">
-      <h1 class="glitch" data-text="RESTRICTED" style="font-family:var(--font-display); font-size:28px; letter-spacing:0.12em; color:var(--ice); margin:0 0 4px; text-transform:uppercase;">RESTRICTED</h1>
-      <span class="login-tag">// unauthorized information terminal</span>
-      <a href="index.html" class="unauth-link" style="position:static; display:inline-block; margin-top:20px;">back to access</a>
+  <div class="breach-wrap">
+    <div class="breach-panel hud-frame" id="breachProtocol">
+      <div class="breach-head">
+        <h1 class="glitch" data-text="BREACH PROTOCOL">BREACH PROTOCOL</h1>
+        <div class="breach-timer-row">
+          TIME REMAINING <span id="breachTimer">65.00</span>
+        </div>
+      </div>
+
+      <a href="index.html" class="breach-login-btn breach-login-btn-top">Return to Login Screen</a>
+
+      <div class="breach-buffer" id="breachBuffer"></div>
+      <button type="button" id="breachStop" class="breach-stop-btn">Stop / Upload Buffer</button>
+
+      <div class="breach-body">
+        <div>
+          <p class="breach-section-label">Code Matrix</p>
+          <div class="breach-grid" id="breachGrid"></div>
+        </div>
+        <div>
+          <p class="breach-section-label">Sequences Required</p>
+          <div id="breachSequences"></div>
+        </div>
+      </div>
+
+      <div class="breach-result is-hidden" id="breachResult">
+        <div class="breach-result-text">
+          <h2 id="breachResultTitle"></h2>
+          <p id="breachResultBody"></p>
+        </div>
+        <button type="button" id="breachRetry">Retry</button>
+      </div>
+
+      <div class="breach-payload" id="breachPayload">
+        <span>// ICE_BREAKER uploaded — BLACKWALL subroutine disabled</span><br>
+        You weren't supposed to get past the corner-brackets. Nothing sensitive
+        lives here, just this note: the actual restricted stuff is your own
+        GraphQL data, gated properly behind the login upstream. This page was
+        always just a decoy for the curious.
+        <div class="breach-payload-actions">
+          <a href="index.html" id="breachAccessBtn" class="breach-access-btn">Access Authorized Data</a>
+          <a href="index.html" class="breach-login-btn">Return to Login Screen</a>
+        </div>
+      </div>
     </div>
   </div>
 
+  <a href="index.html" class="unauth-link">back to access</a>
+
   <script src="js/audio-fx.js"></script>
+  <script src="js/breach.js"></script>
+  <script>
+    document.addEventListener("breach:unlocked", () => {
+      document.getElementById("breachPayload").classList.add("is-visible");
+    });
+  </script>
 </body>
 </html>

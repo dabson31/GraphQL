@@ -2182,6 +2182,355 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
     animation: none !important;
   }
 }
+/* BREACH PROTOCOL minigame, gates unauthorized.html */
+
+.breach-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  padding: 24px;
+}
+
+.breach-panel {
+  width: min(760px, 94vw);
+  padding: 26px 28px 24px;
+  background: rgba(10, 10, 13, 0.85);
+  backdrop-filter: blur(6px);
+}
+
+.breach-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.breach-head h1 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 0.12em;
+  color: var(--ice);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.breach-timer-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+
+.breach-timer-row span#breachTimer {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ice);
+  border: 1px solid var(--cyan);
+  padding: 2px 8px;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+}
+
+.breach-buffer {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  margin-bottom: 20px;
+}
+
+.breach-buffer-slot {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--panel-line);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ice-dim);
+}
+
+.breach-buffer-slot.is-filled {
+  border-style: solid;
+  border-color: var(--cyan);
+  color: var(--ice);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.35);
+}
+
+.breach-stop-btn {
+  margin-bottom: 20px;
+  padding: 7px 14px;
+  background: transparent;
+  border: 1px solid var(--panel-line);
+  color: var(--ice-dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.breach-stop-btn:hover:not(:disabled) {
+  border-color: var(--flag);
+  color: var(--flag);
+}
+
+.breach-stop-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.breach-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.breach-section-label {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin: 0 0 10px;
+}
+
+.breach-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.breach-cell {
+  aspect-ratio: 1.4 / 1;
+  background: var(--void-2);
+  border: 1px solid var(--panel-line);
+  color: var(--ice-dim);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: default;
+  transition: border-color 0.15s, color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.breach-cell.is-selectable {
+  color: var(--ice);
+  border-color: var(--cyan);
+  cursor: pointer;
+}
+
+.breach-cell.is-selectable:hover {
+  background: rgba(0, 240, 255, 0.12);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+.breach-cell.is-used {
+  color: var(--void);
+  background: var(--cyan);
+  border-color: var(--cyan);
+}
+
+.breach-cell.is-locked {
+  opacity: 0.45;
+}
+
+.breach-daemon {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--panel-line);
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.breach-daemon.is-solved {
+  opacity: 1;
+}
+
+.breach-daemon-codes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 34px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--flag);
+}
+
+.breach-daemon.is-solved .breach-daemon-codes {
+  color: var(--ok);
+}
+
+.breach-daemon-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.breach-daemon-name {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ice);
+  text-transform: uppercase;
+}
+
+.breach-daemon.is-solved .breach-daemon-name {
+  color: var(--ok);
+}
+
+.breach-daemon-desc {
+  font-size: 10px;
+  color: var(--ice-dim);
+  line-height: 1.4;
+}
+
+.breach-result {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--panel-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.breach-result.is-hidden {
+  display: none;
+}
+
+.breach-result.is-success {
+  border-color: var(--ok);
+  box-shadow: 0 0 14px rgba(57, 255, 143, 0.3);
+}
+
+.breach-result.is-failure {
+  border-color: var(--red);
+  box-shadow: 0 0 14px rgba(255, 0, 60, 0.3);
+}
+
+.breach-result-text h2 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.breach-result.is-success .breach-result-text h2 { color: var(--ok); }
+.breach-result.is-failure .breach-result-text h2 { color: var(--red); }
+
+.breach-result-text p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--ice-dim);
+}
+
+.breach-result button {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--ice-dim);
+  color: var(--ice);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.breach-result button:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.breach-payload {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--ok);
+  background: rgba(57, 255, 143, 0.06);
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--ice-dim);
+  display: none;
+}
+
+.breach-payload.is-visible {
+  display: block;
+}
+
+.breach-payload span {
+  color: var(--ok);
+}
+
+.breach-payload-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.breach-access-btn {
+  display: inline-block;
+  padding: 11px 22px;
+  background: rgba(57, 255, 143, 0.08);
+  border: 1px solid var(--ok);
+  color: var(--ok);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 12px;
+  text-decoration: none;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.breach-access-btn:hover {
+  background: var(--ok);
+  color: var(--void);
+  box-shadow: 0 0 20px rgba(57, 255, 143, 0.55);
+}
+
+.breach-login-btn {
+  display: inline-block;
+  padding: 11px 22px;
+  background: transparent;
+  border: 1px solid var(--ice-dim);
+  color: var(--ice-dim);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 12px;
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.breach-login-btn:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.breach-login-btn-top {
+  display: inline-block;
+  margin-top: 4px;
+  margin-bottom: 20px;
+  padding: 7px 14px;
+  font-size: 10px;
+}
+
+@media (max-width: 720px) {
+  .breach-body { grid-template-columns: 1fr; }
+}
+
 /*
    BLACKWALL HIDDEN TERMINAL
    click-the-title 8 times in total, see js/terminal.js for the staged reveal (glitch -> flicker -> restricted label -> shell) */
