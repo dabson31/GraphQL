@@ -2,7 +2,7 @@ const HOVER_SOUND_URL = "assets/hover.mp3";
 const BACKGROUND_NOISE_URL = "assets/background.mp3";
 const HOVER_SOUND_VOLUME = 0.5;
 const BACKGROUND_NOISE_VOLUME = 0.5;
-const HOVER_TARGET_SELECTOR = "button, a, .source-btn, .stat-card, .chart-card, .cred-card, .identity-box, .logout-btn, .back-link, [data-magnify]";
+const HOVER_TARGET_SELECTOR = "button, a, .source-btn, .identity-box, .logout-btn, .back-link, [data-magnify]";
 
 (function () {
   let hoverAudio = null;

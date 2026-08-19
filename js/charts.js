@@ -15,6 +15,44 @@ function svgEl(tag, attrs = {}) {
   return el;
 }
 
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+}
+
+// shared floating tooltip for hoverable dots across the svg charts
+let tooltipEl = null;
+function ensureTooltip() {
+  if (tooltipEl) return tooltipEl;
+  tooltipEl = document.createElement("div");
+  tooltipEl.className = "chart-tooltip";
+  document.body.appendChild(tooltipEl);
+  return tooltipEl;
+}
+function positionTooltip(el, evt) {
+  const pad = 14;
+  let left = evt.clientX + pad;
+  let top = evt.clientY + pad;
+  if (left > window.innerWidth - 220) left = evt.clientX - pad - 200;
+  if (top > window.innerHeight - 60) top = evt.clientY - pad - 40;
+  el.style.left = left + "px";
+  el.style.top = top + "px";
+}
+function showTooltip(evt, html) {
+  const el = ensureTooltip();
+  el.innerHTML = html;
+  positionTooltip(el, evt);
+  el.classList.add("is-visible");
+}
+function moveTooltip(evt) {
+  if (!tooltipEl) return;
+  positionTooltip(tooltipEl, evt);
+}
+function hideTooltip() {
+  if (tooltipEl) tooltipEl.classList.remove("is-visible");
+}
+
 
 
 // i just tested the endpoint vals in graphiql and found the ones i needed here for the graph
@@ -70,6 +108,11 @@ async function loadXPOverTimeChart(source) {
       ) {
         amount
         createdAt
+        path
+        object {
+          name
+          type
+        }
       }
     }
   `;
@@ -80,7 +123,8 @@ async function loadXPOverTimeChart(source) {
   let running = 0;
   const points = data.transaction.map(t => {
     running += t.amount;
-    return { date: new Date(t.createdAt), rawTotal: running };
+    const label = (t.object && t.object.name) ? t.object.name : (t.path || "unknown").split("/").pop();
+    return { date: new Date(t.createdAt), rawTotal: running, amount: t.amount, label };
   });
 
   drawXPHero(points, SOURCE_COLORS[source] || RED);
@@ -164,19 +208,71 @@ function drawXPHero(points, color) {
     style: `filter: drop-shadow(0 0 4px ${color}cc);`
   }));
 
-  // dot on the last point
-  const last = points[points.length - 1];
-  svg.appendChild(svgEl("circle", {
-    cx: scaleX(last.date), cy: scaleY(last.rawTotal), r: 5,
-    fill: color, style: `filter: drop-shadow(0 0 6px ${color});`
-  }));
+  // one hoverable dot per calendar day that added xp, grouping same-day
+  // transactions together so the hover shows everything that landed that day
+  const dayGroups = [];
+  const dayIndex = new Map();
+  points.forEach((p, idx) => {
+    const key = p.date.toDateString();
+    let group = dayIndex.get(key);
+    if (!group) {
+      group = [];
+      dayIndex.set(key, group);
+      dayGroups.push(group);
+    }
+    group.push({ ...p, idx });
+  });
+
+  dayGroups.forEach((entries) => {
+    const lastEntry = entries[entries.length - 1];
+    const isLast = lastEntry.idx === points.length - 1;
+    const x = scaleX(lastEntry.date), y = scaleY(lastEntry.rawTotal);
+    const baseR = isLast ? 7 : 5;
+
+    // soft pulsing halo behind the dot, a passive cue that it's hoverable
+    const halo = svgEl("circle", { cx: x, cy: y, r: baseR * 1.6, fill: color, class: "dot-halo" });
+    svg.appendChild(halo);
+
+    const dot = svgEl("circle", {
+      cx: x, cy: y, r: baseR, fill: color, class: "hoverable-dot",
+      opacity: isLast ? "1" : "0.55",
+      style: isLast ? `filter: drop-shadow(0 0 4px ${color});` : "",
+    });
+    svg.appendChild(dot);
+
+    const dayLabel = lastEntry.date.toLocaleDateString();
+    const itemsHtml = entries.map(e =>
+      `<div class="tt-sub">${escapeHtml(e.label)} · +${e.amount.toLocaleString()} XP</div>`
+    ).join("");
+    const headerHtml = entries.length > 1
+      ? `<div class="tt-title">${dayLabel} · ${entries.length} entries</div>`
+      : `<div class="tt-title">${escapeHtml(entries[0].label)}</div>`;
+    const tooltipHtml = entries.length > 1
+      ? headerHtml + itemsHtml
+      : `${headerHtml}<div class="tt-sub">+${entries[0].amount.toLocaleString()} XP · ${dayLabel}</div>`;
+
+    // wider invisible hit target, the visible dot is too small to hover reliably
+    const hit = svgEl("circle", { cx: x, cy: y, r: 11, fill: "transparent", style: "cursor: pointer;" });
+    hit.addEventListener("mouseenter", (e) => {
+      dot.setAttribute("r", baseR + 2);
+      dot.setAttribute("opacity", "1");
+      showTooltip(e, tooltipHtml);
+    });
+    hit.addEventListener("mousemove", moveTooltip);
+    hit.addEventListener("mouseleave", () => {
+      dot.setAttribute("r", baseR);
+      dot.setAttribute("opacity", isLast ? "1" : "0.55");
+      hideTooltip();
+    });
+    svg.appendChild(hit);
+  });
 
   // current total, top right corner of the chart
   const readout = svgEl("text", {
     x: width - padding, y: 28, "text-anchor": "end",
     "font-size": "20", fill: ICE, "font-family": "Rajdhani, sans-serif", "font-weight": "700"
   });
-  readout.textContent = formatXP(last.rawTotal);
+  readout.textContent = formatXP(points[points.length - 1].rawTotal);
   svg.appendChild(readout);
 }
 
@@ -217,13 +313,13 @@ function drawHexRadar(skills) {
   svg.innerHTML = "";
 
   if (skills.length < 3) {
-    const msg = svgEl("text", { x: 130, y: 115, "text-anchor": "middle", "font-size": "11" });
+    const msg = svgEl("text", { x: 130, y: 98, "text-anchor": "middle", "font-size": "11" });
     msg.textContent = "// insufficient skill telemetry";
     svg.appendChild(msg);
     return;
   }
 
-  const cx = 130, cy = 122, maxR = 82;
+  const cx = 130, cy = 98, maxR = 64;
   const n = skills.length;
   const maxVal = Math.max(...skills.map(s => s.value), 1);
 
@@ -253,7 +349,24 @@ function drawHexRadar(skills) {
 
   skills.forEach((s, i) => {
     const [x, y] = pointAt(i, (s.value / maxVal) * maxR);
-    svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 3, fill: RED, style: "filter: drop-shadow(0 0 4px rgba(255,0,60,0.9));" }));
+    // soft pulsing halo behind the dot, a passive cue that it's hoverable
+    const halo = svgEl("circle", { cx: x, cy: y, r: 8, fill: RED, class: "dot-halo" });
+    svg.appendChild(halo);
+    const dot = svgEl("circle", { cx: x, cy: y, r: 5, fill: RED, class: "hoverable-dot", style: "filter: drop-shadow(0 0 3px rgba(255,0,60,0.85));" });
+    svg.appendChild(dot);
+
+    // wider invisible hit target so the small dot is easy to hover
+    const hit = svgEl("circle", { cx: x, cy: y, r: 11, fill: "transparent", style: "cursor: pointer;" });
+    hit.addEventListener("mouseenter", (e) => {
+      dot.setAttribute("r", 7);
+      showTooltip(e, `<div class="tt-title">${escapeHtml(s.label)}</div><div class="tt-sub">${s.value}%</div>`);
+    });
+    hit.addEventListener("mousemove", moveTooltip);
+    hit.addEventListener("mouseleave", () => {
+      dot.setAttribute("r", 5);
+      hideTooltip();
+    });
+    svg.appendChild(hit);
   });
 }
 

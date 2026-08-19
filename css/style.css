@@ -613,7 +613,7 @@ input:focus-visible {
   position: relative;
 }
 
-.stat-card:hover {
+.stat-card.interactive-panel:hover {
   box-shadow: 0 0 18px rgba(255, 0, 60,0.35), inset 0 0 20px rgba(255, 0, 60,0.06);
   transform: translateY(-2px);
 }
@@ -647,7 +647,7 @@ input:focus-visible {
   pointer-events: none;
 }
 
-.stat-card:hover::before { opacity: 0.16; }
+.stat-card.interactive-panel:hover::before { opacity: 0.16; }
 .stat-card .stat-label { color: var(--icon-color, var(--red)); }
 
 @keyframes led-pulse {
@@ -741,9 +741,11 @@ input:focus-visible {
   transition: box-shadow 0.15s;
 }
 
-.chart-card:hover {
+.chart-card.interactive-panel:hover {
   box-shadow: 0 0 20px rgba(255, 0, 60,0.3);
 }
+
+.interactive-panel { cursor: pointer; }
 
 /* skillsChart / passFailChart / auditGauge */
 .chart-card svg {
@@ -1263,7 +1265,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 
 .stat-card-wide {
   grid-column: span 4;
-  min-height: 160px;
+  min-height: 150px;
 }
 
 /* passed/failed and given/received tiles, half the width of the xp tile, which is itself the same width as the hero graph */
@@ -1333,13 +1335,19 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 
 .center-visuals > * { flex: 1; }
 
-/* left column carries three panels (skill matrix, data source toggle, uplink log)  */
-.center-visuals:not(.right) > .chart-card:first-child { flex: 0.85; }
-.center-visuals:not(.right) > .source-toggle-card { flex: 0.7; }
-.center-visuals:not(.right) > .uplink-card { flex: 1.45; }
+/* left column carries four panels (skill matrix, data source toggle, uplink
+   log, best skill) — the uplink log is trimmed and the skill matrix graph
+   shortened a touch so best skill fits underneath, fixed at the same
+   150px as module xp (right column) and the hero substrip (center column)
+   so all three sit on the same bottom level */
+.center-visuals:not(.right) > .chart-card:first-child { flex: 0.75; }
+.center-visuals:not(.right) > .source-toggle-card { flex: 0.65; }
+.center-visuals:not(.right) > .uplink-card { flex: 0.85; }
+.center-visuals:not(.right) > .stat-card-wide { flex: 0 0 150px; }
 
 /* street cred content: (rank panel + divider + system readout)*/
 .center-visuals.right .cred-card { flex: 1.6; }
+.center-visuals.right > .stat-card-wide { flex: 0 0 150px; }
 
 .hero-column {
   grid-column: 2 / 6;
@@ -1349,12 +1357,12 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   gap: 12px;
 }
 
-.hero-graph { flex: 3.55; }
+.hero-graph { flex: 1; }
 
 .hero-substrip {
   display: flex;
   gap: 12px;
-  flex: 0.55;
+  flex: 0 0 150px;
 }
 
 .hero-substrip .stat-card-half { flex: 1; }
@@ -1403,7 +1411,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   flex: 1;
   height: 10px;
   background: rgba(244,246,245,0.07);
-  border: 1px solid rgba(244,246,245,0.1);
+  border: 1px solid var(--panel-line);
   position: relative;
   overflow: hidden;
 }
@@ -1476,7 +1484,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   position: fixed;
   z-index: 1201;
   margin: 0;
-  overflow: hidden;
+  overflow: visible;
   /* auto (not none) so the enlarged text can actually be selected/copied */
   pointer-events: auto;
   cursor: text;
@@ -1568,21 +1576,105 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 .magnify-clone:not(.magnify-row-clone) .chart-title {
   align-self: center;
   text-align: center;
-  font-size: 15px;
-  margin-bottom: 16px;
+  font-size: 19px;
+  margin-bottom: 20px;
 }
 
 .magnify-clone:not(.magnify-row-clone) .stat-label {
   text-align: center;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .magnify-clone:not(.magnify-row-clone) .stat-value {
-  font-size: 2.15em;
+  font-size: 2.6em;
 }
 
 .magnify-clone:not(.magnify-row-clone) .stat-sub {
+  font-size: 1.4em;
+}
+
+.magnify-clone:not(.magnify-row-clone) .uplink-log .log-line {
+  font-size: 1.7em;
+  line-height: 1.9;
+}
+
+.magnify-clone:not(.magnify-row-clone) .cred-level {
+  font-size: 1.6em;
+}
+
+.magnify-clone:not(.magnify-row-clone) .cred-title {
+  font-size: 2.2em;
+}
+
+.magnify-clone:not(.magnify-row-clone) .cred-desc {
+  font-size: 1.5em;
+}
+
+.magnify-clone:not(.magnify-row-clone) .sys-label {
+  width: auto;
+  font-size: 1.5em;
+}
+
+.magnify-clone:not(.magnify-row-clone) .sys-value {
+  width: auto;
+  font-size: 1.5em;
+}
+
+.magnify-clone:not(.magnify-row-clone) .sys-value-num {
+  width: auto;
+  font-size: 1.4em;
+}
+
+.magnify-clone:not(.magnify-row-clone) #sysGpuVal {
+  width: auto;
   font-size: 1.2em;
+}
+
+.magnify-clone:not(.magnify-row-clone) .sys-bar-track {
+  height: 20px;
+  border-width: 2px;
+}
+
+.chart-tooltip {
+  position: fixed;
+  z-index: 4000;
+  pointer-events: none;
+  background: rgba(3, 3, 4, 0.92);
+  border: 1px solid var(--panel-line);
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ice);
+  box-shadow: 0 0 12px rgba(255, 0, 60,0.25);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  white-space: nowrap;
+}
+
+.chart-tooltip.is-visible { opacity: 1; transform: translateY(0); }
+
+.chart-tooltip .tt-title {
+  color: var(--red);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+
+.chart-tooltip .tt-sub { color: var(--ice-dim); font-size: 10px; }
+
+/* passive pulsing halo behind hoverable dots, a hint they're interactive
+   without needing to actually mouse over them first */
+.dot-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+  animation: dot-halo-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes dot-halo-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.38; }
+  50% { transform: scale(1.3); opacity: 0.08; }
 }
 
 .tx-log {
@@ -1714,48 +1806,6 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   0%   { opacity: 0.85; filter: blur(0px); }
   100% { opacity: 0; filter: blur(2px); transform: rotate(-12deg) scale(calc(var(--sdv-scale, 1) * 0.4)); }
 }
-
-.sdv-speedlines {
-  position: fixed;
-  width: 220px;
-  height: 220px;
-  margin: -110px 0 0 -110px;
-  transform: rotate(var(--sdv-angle, 0deg));
-  background:
-    repeating-conic-gradient(
-      from 0deg,
-      rgba(244, 246, 245, 0.5) 0deg 2deg,
-      transparent 2deg 18deg
-    );
-  -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,0.9) 0%, transparent 70%);
-  mask-image: radial-gradient(circle, rgba(0,0,0,0.9) 0%, transparent 70%);
-  mix-blend-mode: screen;
-  animation: sdv-speedlines-fade 0.4s ease-out forwards;
-}
-
-@keyframes sdv-speedlines-fade {
-  0%   { opacity: 0.9; transform: rotate(var(--sdv-angle, 0deg)) scale(0.5); }
-  100% { opacity: 0;   transform: rotate(var(--sdv-angle, 0deg)) scale(1.15); }
-}
-
-/* whole-page flash on a hard flick */
-body.sdv-burst-active::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse at center, transparent 55%, rgba(3,3,4,0.55) 100%);
-  animation: sdv-burst-flash 0.26s ease-out forwards;
-}
-
-@keyframes sdv-burst-flash {
-  0%   { opacity: 1; filter: saturate(2.4) brightness(1.25) hue-rotate(-6deg); }
-  100% { opacity: 0; filter: saturate(1) brightness(1) hue-rotate(0deg); }
-}
-
-
 
 .tx-collapse {
   animation: tx-collapse-in 0.22s ease-in forwards;

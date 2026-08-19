@@ -44,11 +44,13 @@
 
       <!-- left column: skill matrix, data-source toggle, then the uplink log
            sitting under the toggle so the feed it's reporting on is directly
-           above it instead of clear across the grid in the center column -->
+           above it instead of clear across the grid in the center column,
+           with best skill under the log so it lines up with module xp and
+           the hero substrip on the same bottom level -->
       <div class="center-visuals">
-        <div class="chart-card hud-frame" data-magnify>
+        <div class="chart-card hud-frame interactive-panel" data-magnify>
           <span class="chart-title">Skill Matrix</span>
-          <svg id="skillsChart" viewBox="0 0 260 244"></svg>
+          <svg id="skillsChart" viewBox="0 0 260 196"></svg>
         </div>
 
         <div class="chart-card hud-frame source-toggle-card">
@@ -62,9 +64,16 @@
           <p class="source-hint">swaps the trajectory feed on the main graph</p>
         </div>
 
-        <div class="chart-card hud-frame uplink-card">
+        <div class="chart-card hud-frame uplink-card interactive-panel" data-magnify>
           <span class="chart-title">Uplink Log</span>
           <div id="uplinkLog" class="uplink-log"></div>
+        </div>
+
+        <div class="stat-card stat-card-wide hud-frame interactive-panel" data-magnify data-icon="★" style="--icon-color:#fcee0a;">
+          <span class="stat-label">Best Skill</span>
+          <span class="stat-value stat-value-lg" id="stat-best-skill">--</span>
+          <span class="stat-outline" id="stat-best-skill-outline">--</span>
+          <span class="stat-sub">highest logged amount</span>
         </div>
       </div>
 
@@ -78,7 +87,7 @@
         </div>
 
         <div class="hero-substrip">
-          <div class="stat-card stat-card-half hud-frame" data-magnify data-icon="✓" style="--icon-color:#39ff8f;">
+          <div class="stat-card stat-card-half hud-frame interactive-panel" data-magnify data-icon="✓" style="--icon-color:#39ff8f;">
             <span class="stat-label">Projects Passed / Failed</span>
             <div class="stat-split">
               <div class="stat-split-item">
@@ -93,7 +102,7 @@
             </div>
           </div>
 
-          <div class="stat-card stat-card-half hud-frame" data-magnify data-icon="⇅" style="--icon-color:#00f0ff;">
+          <div class="stat-card stat-card-half hud-frame interactive-panel" data-magnify data-icon="⇅" style="--icon-color:#00f0ff;">
             <span class="stat-label">XP Given / Received</span>
             <div class="stat-split">
               <div class="stat-split-item">
@@ -111,17 +120,18 @@
       </div>
 
       <!-- right column: pass/fail, audit gauge, street cred (with a system
-           diagnostics readout tacked on below it), module xp, best skill -->
+           diagnostics readout tacked on below it), module xp — best skill
+           now lives at the bottom of the left column instead -->
       <div class="center-visuals right">
-        <div class="chart-card hud-frame" data-magnify>
+        <div class="chart-card hud-frame interactive-panel" data-magnify>
           <span class="chart-title">Pass / Fail</span>
           <svg id="passFailChart" viewBox="0 0 220 220"></svg>
         </div>
-        <div class="chart-card hud-frame" data-magnify>
+        <div class="chart-card hud-frame interactive-panel" data-magnify>
           <span class="chart-title">Audit Ratio</span>
           <svg id="auditGauge" viewBox="0 0 200 200"></svg>
         </div>
-        <div class="chart-card hud-frame cred-card">
+        <div class="chart-card hud-frame cred-card interactive-panel" data-magnify>
           <span class="chart-title">Street Cred</span>
           <div id="streetCred" class="cred-body"></div>
 
@@ -147,18 +157,11 @@
           </div>
         </div>
 
-        <div class="stat-card stat-card-wide hud-frame" data-magnify data-icon="◆" style="--icon-color:#ff003c;">
+        <div class="stat-card stat-card-wide hud-frame interactive-panel" data-magnify data-icon="◆" style="--icon-color:#ff003c;">
           <span class="stat-label" id="stat-xp-label">Module XP</span>
           <span class="stat-value stat-value-lg" id="stat-xp">--</span>
           <span class="stat-outline" id="stat-xp-remainder">--</span>
           <span class="stat-sub">raw data transferred // tracks the active source feed</span>
-        </div>
-
-        <div class="stat-card stat-card-wide hud-frame" data-magnify data-icon="★" style="--icon-color:#fcee0a;">
-          <span class="stat-label">Best Skill</span>
-          <span class="stat-value stat-value-lg" id="stat-best-skill">--</span>
-          <span class="stat-outline" id="stat-best-skill-outline">--</span>
-          <span class="stat-sub">highest logged amount</span>
         </div>
       </div>
 
