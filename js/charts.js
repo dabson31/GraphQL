@@ -892,7 +892,7 @@ async function loadUplinkLog(source) {
       transaction(
         where: { type: { _eq: "xp" }, ${buildPathClause(source)} }
         order_by: { createdAt: desc }
-        limit: 20
+        limit: 19
       ) {
         amount
         createdAt
@@ -924,7 +924,8 @@ function renderUplinkLog(entries, gen) {
 
   const lines = entries.map(t => {
     const time = new Date(t.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-    const label = (t.object && t.object.name) ? t.object.name : (t.path || "unknown").split("/").pop();
+    let label = (t.object && t.object.name) ? t.object.name : (t.path || "unknown").split("/").pop();
+    if (label.length > 17) label = label.slice(0, 17) + "...";
     return `[${time}] +${t.amount.toLocaleString()} XP :: ${label}`;
   });
 
