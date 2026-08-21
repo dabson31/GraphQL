@@ -1,8 +1,4 @@
-
-
-
-
-const GRID_SIZE = 5;
+  const GRID_SIZE = 5;
   const CODE_POOL = ["1C", "E9", "55", "BD", "A4", "7F"];
   const BUFFER_SIZE = 7;
   const TIME_LIMIT = 67;

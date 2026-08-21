@@ -5,11 +5,6 @@ export const MODULE_ONLY_FILTER = `path: { _nilike: "%piscine%" }`;
 export const MODULE_XP_FILTER = `_or: [{ ${MODULE_ONLY_FILTER} }, { amount: { _eq: 70000 }, object: { name: { _eq: "Piscine JS" } } }]`;
 
 
-
-
-
-
-
 export function clearProfileTarget() {
   sessionStorage.removeItem("blackwall_profile_target");
 }

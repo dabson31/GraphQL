@@ -125,12 +125,11 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     await sleep(1000);
 
     
+
     flash.classList.add("tx-black-cut");
     await sleep(350);
 
-    sessionStorage.setItem("blackwall_skip_lines", "1");
-
-    
+    sessionStorage.setItem("blackwall_just_logged_in", "1");
     onDone();
   }
 

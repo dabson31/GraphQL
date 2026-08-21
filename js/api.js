@@ -1,6 +1,3 @@
-
-
-
 import { getToken, logout } from "./auth.js";
 
 const GRAPHQL_URL = `https://learn.reboot01.com/api/graphql-engine/v1/graphql`;

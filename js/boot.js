@@ -1,24 +1,16 @@
-
-
-
-
-
 export function runBootSequence() {
   const overlay = document.getElementById("bootOverlay");
   const linesEl = document.getElementById("bootLines");
   if (!overlay || !linesEl) return;
 
   const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const alreadyRan = sessionStorage.getItem("blackwall_booted");
+  const justLoggedIn = sessionStorage.getItem("blackwall_just_logged_in");
+  sessionStorage.removeItem("blackwall_just_logged_in");
 
-  const skipLines = sessionStorage.getItem("blackwall_skip_lines");
-
-  if (prefersReduced || alreadyRan) {
+  if (prefersReduced || !justLoggedIn) {
     overlay.remove();
     return;
   }
-  sessionStorage.setItem("blackwall_booted", "1");
-  sessionStorage.removeItem("blackwall_skip_lines");
 
   const bootLines = [
     "BLACKWALL RELAY // COLD BOOT",
@@ -127,9 +119,13 @@ export function runBootSequence() {
   let i = 0;
   function nextLine() {
     if (i >= bootLines.length) {
-      setTimeout(shatterOverlay, 400);
+      setTimeout(() => {
+        linesEl.innerHTML = "";
+        setTimeout(shatterOverlay, 500);
+      }, 600);
       return;
     }
+
     const row = document.createElement("div");
     row.className = "boot-row";
     linesEl.appendChild(row);
@@ -147,9 +143,5 @@ export function runBootSequence() {
     })();
   }
 
-  if (skipLines) {
-    setTimeout(shatterOverlay, 150);
-  } else {
-    nextLine();
-  }
+  nextLine();
 }

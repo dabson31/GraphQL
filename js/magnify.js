@@ -1,8 +1,3 @@
-
-
-
-
-
 let magnifyBound = false;
 
 export function initMagnify() {

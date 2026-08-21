@@ -1,15 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
 let dashboardListenersBound = false;
 
 function setupDashboardListeners() {

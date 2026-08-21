@@ -2717,6 +2717,14 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   }
 }
 
+#txFlashText {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+#txFlashText.tx-flash-text-visible {
+  opacity: 1;
+}
+
 .source-btn[data-source="module"] {
   --src-color: #ff003c;
 }

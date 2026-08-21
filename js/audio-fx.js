@@ -1,20 +1,27 @@
 const HOVER_SOUND_URL = "assets/hover.mp3";
 const BACKGROUND_NOISE_URL = "assets/background.mp3";
 const HOVER_SOUND_VOLUME = 0.5;
-const BACKGROUND_NOISE_VOLUME = 0.5;
+const BACKGROUND_NOISE_VOLUME = 0.4;
 const HOVER_TARGET_SELECTOR = "button, a, .source-btn, .identity-box, .logout-btn, .back-link, [data-magnify]";
 
 export function initAudioFx() {
-  let hoverAudio = null;
+  const HOVER_POOL_SIZE = 4;
+  let hoverPool = [];
+  let hoverPoolIndex = 0;
   if (HOVER_SOUND_URL) {
-    hoverAudio = new Audio(HOVER_SOUND_URL);
-    hoverAudio.volume = HOVER_SOUND_VOLUME;
+    hoverPool = Array.from({ length: HOVER_POOL_SIZE }, () => {
+      const a = new Audio(HOVER_SOUND_URL);
+      a.volume = HOVER_SOUND_VOLUME;
+      return a;
+    });
   }
 
   function playHoverSound() {
     if (!HOVER_SOUND_URL) return;
-    hoverAudio.currentTime = 0;
-    hoverAudio.play().catch(() => {});
+    const instance = hoverPool[hoverPoolIndex];
+    hoverPoolIndex = (hoverPoolIndex + 1) % hoverPool.length;
+    instance.currentTime = 0;
+    instance.play().catch(() => {});
   }
 
   function attachHoverSound() {

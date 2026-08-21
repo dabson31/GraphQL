@@ -7,7 +7,6 @@ function targetLogin() {
   return sessionStorage.getItem("blackwall_profile_target") || null;
 }
 
-// threat assessment is just flavor text derived from the real audit ratio
 function threatFromRatio(ratio) {
   if (ratio >= 1.5) return "MINIMAL -- audits stacked in your favor";
   if (ratio >= 1.0) return "LOW -- balance sheet is clean";
@@ -63,9 +62,6 @@ async function resolveCohortEventId(selfId) {
   return cohort.id;
 }
 
-// wraps the real loader so a bad/missing target, an expired token, or a
-// GraphQL error can't leave the view stuck on its "--" placeholders --
-// falls back to a visible error state on the panel instead of a blank page
 export async function safeLoadProfileDetail() {
   try {
     await loadProfileDetail();

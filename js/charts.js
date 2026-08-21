@@ -140,6 +140,7 @@ let lastHeroColor = null;
 function drawXPHero(points, color) {
   color = color || RED;
   const svg = document.getElementById("xpChart");
+  if (!svg) return;
   svg.innerHTML = "";
   lastHeroPoints = points;
   lastHeroColor = color;
@@ -466,19 +467,21 @@ function setPpPaginationVisible(visible) {
   if (pag) pag.style.display = visible ? "" : "none";
 }
 
-let ppControlsBound = false;
+let ppPrevBoundEl = null;
+let ppNextBoundEl = null;
 function bindPpPaginationControls() {
-  if (ppControlsBound) return;
-  ppControlsBound = true;
   const prevBtn = document.getElementById("ppPrevBtn");
   const nextBtn = document.getElementById("ppNextBtn");
-  if (prevBtn) {
+
+  if (prevBtn && prevBtn !== ppPrevBoundEl) {
+    ppPrevBoundEl = prevBtn;
     prevBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       if (ppPage > 0) { ppPage--; renderProjectProgressPage(); }
     });
   }
-  if (nextBtn) {
+  if (nextBtn && nextBtn !== ppNextBoundEl) {
+    ppNextBoundEl = nextBtn;
     nextBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       const maxPage = Math.max(0, Math.ceil(ppGroups.length / PP_PAGE_SIZE) - 1);

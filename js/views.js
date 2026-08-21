@@ -1,19 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function createLoginView() {
   return `
     <section id="view-login" class="view">

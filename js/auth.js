@@ -38,9 +38,3 @@ export function decodeJWT(token) {
   const decoded = atob(payload);
   return JSON.parse(decoded);
 }
-
-
-
-
-
-
