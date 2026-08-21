@@ -17,6 +17,6 @@ func main() {
 	http.Handle("/", fs)
 
 	addr := ":5500"
-	log.Println("serving on http://127.0.0.1" + addr)
+	log.Println("serving on http://localhost:5500" + addr)
 	log.Fatal(http.ListenAndServe(addr, fs))
 }
