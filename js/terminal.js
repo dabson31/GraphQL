@@ -1,8 +1,44 @@
-(function () {
-  const CLICK_DECAY_MS = 2200;
+import { graphqlQuery } from "./api.js";
+
+
+
+
+
+
+
+
+
+
+
+
+let boundTitleEl = null;
+
+let terminalBuilt = false;
+let openTerminalRef = null;
+
+export function initTerminalEasterEgg() {
   const titleEl = document.querySelector(".title-band .glitch");
   if (!titleEl) return;
 
+  
+  
+  
+  
+  if (!terminalBuilt) {
+    terminalBuilt = true;
+    openTerminalRef = buildTerminalSingleton();
+  }
+
+  if (titleEl === boundTitleEl) return; 
+  boundTitleEl = titleEl;
+  bindTitleClicks(titleEl);
+}
+
+
+
+
+function bindTitleClicks(titleEl) {
+  const CLICK_DECAY_MS = 2200;
   let clicks = 0;
   let decayTimer = null;
   let restrictedLabel = null;
@@ -50,11 +86,15 @@
 
     if (clicks >= 8) {
       resetProgress();
-      openTerminal();
+      openTerminalRef();
     }
   });
+}
 
-  // ---------------- terminal ----------------
+
+
+function buildTerminalSingleton() {
+  
 
   let termEl = null;
   let inputEl = null;
@@ -274,37 +314,37 @@
     }
   }
 
-  // pulls the authenticated user's cohort event(s) via the usersRelation on
-  // `event`, then lists every netrunner tied to the chosen event straight
-  // off event_user's own userLogin/userAuditRatio columns, sorted
-  // server-side.
-  //
-  //   query ($uid: Int) {
-  //     event(
-  //       where: {
-  //         usersRelation: { userId: { _eq: $uid } }
-  //         object: { type: { _in: ["module"] } }
-  //       }
-  //     ) {
-  //       id
-  //       path
-  //     }
-  //   }
-  //
-  //   query ($eid: Int) {
-  //     event_user(where: { eventId: { _eq: $eid } }, order_by: { userAuditRatio: desc }) {
-  //       userLogin
-  //       userAuditRatio
-  //     }
-  //   }
-  //
-  //
-  //   shownetrunners                         -> bar chart (default now)
-  //   shownetrunners -t / --table            -> plain table instead of the chart
-  //   shownetrunners --list                  -> print every event you're on
-  //   shownetrunners --event <id>            -> force that eventId
-  //   shownetrunners --event <path fragment> -> force whichever membership's
-  //                                              path contains that fragment
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   async function runShowNetrunners(flags) {
     printLine("tracing cohort uplink...");
     try {
@@ -427,26 +467,26 @@
     }
   }
 
-  // brute-force sweep: hits event_user for every eventId in [1, maxId] and
-  // pools every (userId, userLogin, userAuditRatio) row it gets back,
-  // de-duping on userId (first hit wins) since the same person can turn up
-  // under more than one event. server-side row-level security means most
-  // ids will just come back empty rather than erroring, but there's no way
-  // to know the real ceiling up front, so this is inherently a guess-and-
-  // sweep operation, not a targeted query.
-  //
-  //   for (id = 1; id <= maxId; id++):
-  //     event_user(where: { eventId: { _eq: id } }, order_by: { userAuditRatio: desc }) {
-  //       userId
-  //       userLogin
-  //       userAuditRatio
-  //     }
-  //
-  //   shownetrunners --all            -> sweep ids 1..1500 (default cap)
-  //   shownetrunners --all 4000       -> sweep ids 1..4000 instead
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   const SWEEP_DEFAULT_MAX = 1500;
-  const SWEEP_BATCH_SIZE = 20;      // concurrent requests per batch
-  const SWEEP_BATCH_DELAY_MS = 120; // pause between batches so it doesn't hammer the api
+  const SWEEP_BATCH_SIZE = 20;      
+  const SWEEP_BATCH_DELAY_MS = 120; 
 
   async function runShowAllAuditRatios(flags) {
     const flagIdx = flags.findIndex((f) => f === "--all" || f === "-a");
@@ -461,7 +501,7 @@
     printLine(`most ids will come back empty (no access / no such event) -- that's expected.`, "bw-terminal-cryptic");
     printLine("");
 
-    const seen = new Map(); // userId -> { login, auditRatio }
+    const seen = new Map(); 
     let hitEvents = 0;
     let emptyOk = 0;
     let deniedCount = 0;
@@ -484,8 +524,8 @@
             { eid: id }
           )
             .then((r) => ({ ok: true, data: r }))
-            // a dead/forbidden id shouldn't kill the whole sweep, but tag it
-            // as denied instead of silently treating it the same as "empty"
+            
+            
             .catch((err) => ({ ok: false, error: err.message }))
         )
       );
@@ -503,7 +543,7 @@
           emptyOk++;
         }
         rows.forEach((row) => {
-          if (!row.userId || seen.has(row.userId)) return; // dedupe on uid
+          if (!row.userId || seen.has(row.userId)) return; 
           seen.set(row.userId, { login: row.userLogin, auditRatio: row.userAuditRatio || 0 });
         });
       });
@@ -546,10 +586,10 @@
     });
   }
 
-  // renders `members` ([{login, auditRatio}]) as a monospace horizontal bar
-  // chart, one row per netrunner. the chart sits in its own no-wrap,
-  // horizontally-scrollable strip (see .bw-terminal-chart in style.css) so
-  // long rosters / long logins scroll instead of collapsing the bars.
+  
+  
+  
+  
   const CHART_BAR_MAX = 36;
 
   function printChart(members, myLogin) {
@@ -614,7 +654,7 @@
       printLine("redirecting to your netrunner file...", "bw-terminal-cryptic");
     }
     setTimeout(() => {
-      window.location.href = "profile-detail.html";
+      window.navigateTo("/profile-detail");
     }, 260);
   }
 
@@ -804,4 +844,5 @@
     matrixRAF = null;
     matrixResizeHandler = null;
   }
-})();
+  return openTerminal;
+}

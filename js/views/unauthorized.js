@@ -1,0 +1,76 @@
+import { startBreachProtocol } from "../breach.js";
+
+export default function UnauthorizedView() {
+  const wrapper = document.createElement("div");
+  wrapper.className = "view-unauthorized";
+  wrapper.innerHTML = `
+    <div class="bw-sweep"></div>
+
+    <div class="breach-wrap">
+      <div class="breach-panel hud-frame" id="breachProtocol">
+        <div class="breach-head">
+          <h1 class="glitch" data-text="BREACH PROTOCOL">BREACH PROTOCOL</h1>
+          <div class="breach-timer-row">
+            TIME REMAINING <span id="breachTimer">65.00</span>
+          </div>
+        </div>
+
+        <a href="#/login" data-link class="breach-login-btn breach-login-btn-top">Return to Login Screen</a>
+
+        <div class="breach-buffer" id="breachBuffer"></div>
+        <button type="button" id="breachStop" class="breach-stop-btn">Stop / Upload Buffer</button>
+
+        <div class="breach-body">
+          <div>
+            <p class="breach-section-label">Code Matrix</p>
+            <div class="breach-grid" id="breachGrid"></div>
+          </div>
+          <div>
+            <p class="breach-section-label">Sequences Required</p>
+            <div id="breachSequences"></div>
+          </div>
+        </div>
+
+        <div class="breach-result is-hidden" id="breachResult">
+          <div class="breach-result-text">
+            <h2 id="breachResultTitle"></h2>
+            <p id="breachResultBody"></p>
+          </div>
+          <button type="button" id="breachRetry">Retry</button>
+        </div>
+
+        <div class="breach-payload" id="breachPayload">
+          <span>// ICE_BREAKER uploaded — BLACKWALL subroutine disabled</span><br>
+          You weren't supposed to get past the corner-brackets. Nothing sensitive
+          lives here, just this note: the actual restricted stuff is your own
+          GraphQL data, gated properly behind the login upstream. This page was
+          always just a decoy for the curious.
+          <div class="breach-payload-actions">
+            <a href="#/login" data-link id="breachAccessBtn" class="breach-access-btn">Access Authorized Data</a>
+            <a href="#/login" data-link class="breach-login-btn">Return to Login Screen</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <a href="#/login" data-link class="unauth-link">back to access</a>
+  `;
+
+  
+  function onUnlocked() {
+    const payload = wrapper.querySelector("#breachPayload");
+    if (payload) payload.classList.add("is-visible");
+  }
+  document.addEventListener("breach:unlocked", onUnlocked);
+  window.registerViewCleanup(() => {
+    document.removeEventListener("breach:unlocked", onUnlocked);
+  });
+
+  
+  
+  wrapper.mount = () => {
+    startBreachProtocol();
+  };
+
+  return wrapper;
+}

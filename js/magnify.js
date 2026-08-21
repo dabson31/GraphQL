@@ -1,8 +1,18 @@
-(function () {
-  const SCALE = 1.9;           // how much bigger the lifted card gets
+
+
+
+
+
+let magnifyBound = false;
+
+export function initMagnify() {
+  if (magnifyBound) return;
+  magnifyBound = true;
+
+  const SCALE = 1.9;           
   const SCALE_ROW = 3.2;
-  const VIEWPORT_MARGIN = 0.86; // clone never exceeds this fraction of the viewport
-  const FLIGHT_MS = 420;       // must match the transition duration in style.css
+  const VIEWPORT_MARGIN = 0.86; 
+  const FLIGHT_MS = 420;       
 
   let backdrop = null;
   let clone = null;
@@ -33,7 +43,7 @@
     return btn;
   }
 
-  // centered, scale-clamped rect a given source rect should fly out to
+  
   function targetRectFor(rect, scale) {
     const width = Math.min(rect.width * scale, window.innerWidth * VIEWPORT_MARGIN);
     const height = Math.min(rect.height * scale, window.innerHeight * VIEWPORT_MARGIN);
@@ -56,7 +66,7 @@
   }
 
   function liftOff(el) {
-    if (sourceEl === el && clone) return; // already showing this one, nothing to do
+    if (sourceEl === el && clone) return; 
 
     const bd = ensureBackdrop();
     const rect = el.getBoundingClientRect();
@@ -120,7 +130,8 @@
     if (e.key === "Escape") dropBack();
   });
 
-  document.querySelectorAll("[data-magnify]").forEach((el) => {
-    el.addEventListener("click", () => liftOff(el));
+  document.addEventListener("click", (e) => {
+    const el = e.target.closest("[data-magnify]");
+    if (el) liftOff(el);
   });
-})();
+}

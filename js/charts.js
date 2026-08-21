@@ -1,3 +1,6 @@
+import { graphqlQuery } from "./api.js";
+import { formatXP, MODULE_ONLY_FILTER, MODULE_XP_FILTER } from "./profile.js";
+
 const NS = "http://www.w3.org/2000/svg";
 const RED = "#ff003c";
 const ICE = "#f4f6f5";
@@ -8,7 +11,7 @@ const ORANGE = "#ff8c1a";
 const FAIL_COL = "#4a4a52";
 const GRID = "rgba(255,0,60,0.18)";
 
-// svg elements need createElementNS instead of createElement or they wont render
+
 function svgEl(tag, attrs = {}) {
   const el = document.createElementNS(NS, tag);
   for (const k in attrs) el.setAttribute(k, attrs[k]);
@@ -21,7 +24,7 @@ function escapeHtml(str) {
   }[c]));
 }
 
-// shared floating tooltip for hoverable dots across the svg charts
+
 let tooltipEl = null;
 function ensureTooltip() {
   if (tooltipEl) return tooltipEl;
@@ -31,11 +34,11 @@ function ensureTooltip() {
   return tooltipEl;
 }
 function positionTooltip(el, evt) {
-  const pad = 14;
+  const pad = 16;
   let left = evt.clientX + pad;
   let top = evt.clientY + pad;
-  if (left > window.innerWidth - 220) left = evt.clientX - pad - 200;
-  if (top > window.innerHeight - 60) top = evt.clientY - pad - 40;
+  if (left > window.innerWidth - 260) left = evt.clientX - pad - 240;
+  if (top > window.innerHeight - 80) top = evt.clientY - pad - 60;
   el.style.left = left + "px";
   el.style.top = top + "px";
 }
@@ -55,7 +58,7 @@ function hideTooltip() {
 
 
 
-// i just tested the endpoint vals in graphiql and found the ones i needed here for the graph
+
 const SOURCE_PATTERNS = {
   "piscine-go":   ["piscine-go"],
   "piscine-js":   ["piscine_js"],
@@ -70,13 +73,13 @@ const SOURCE_COLORS = {
   "piscine-rust": ORANGE,
 };
 
-//
+
 function normalizeSource(source) {
   return source === "piscine" ? "piscine-go" : source;
 }
 
-// display labels per source, shared by the source-xp stat tile and the uplink
-// log header so both read the same feed name the hero graph is showing
+
+
 const SOURCE_LABELS = {
   "module":       "Module",
   "piscine-go":   "Piscine",
@@ -96,8 +99,8 @@ function buildPathClause(source) {
   return `_or: [${or}]`;
 }
 
-// this is the main graph, xp over time, source picks which feed: module, piscine-go/js/rust
-async function loadXPOverTimeChart(source) {
+
+export async function loadXPOverTimeChart(source) {
   source = normalizeSource(source || "module");
 
   const query = `
@@ -119,7 +122,7 @@ async function loadXPOverTimeChart(source) {
 
   const data = await graphqlQuery(query);
 
-  // running total per event, keep it raw, format later when drawing
+  
   let running = 0;
   const points = data.transaction.map(t => {
     running += t.amount;
@@ -130,7 +133,7 @@ async function loadXPOverTimeChart(source) {
   drawXPHero(points, SOURCE_COLORS[source] || RED);
 }
 
-//
+
 let lastHeroPoints = null;
 let lastHeroColor = null;
 
@@ -141,7 +144,7 @@ function drawXPHero(points, color) {
   lastHeroPoints = points;
   lastHeroColor = color;
 
-//
+
   const box = svg.getBoundingClientRect();
   const width = Math.round(box.width) || 780;
   const height = Math.round(box.height) || 340;
@@ -149,9 +152,9 @@ function drawXPHero(points, color) {
   const padding = 46;
 
   if (points.length < 2) {
-    // not enough data points to draw a line with, bail out, but say why
-    // instead of a bare "no data yet", since an empty feed and a broken
-    // filter look identical to the user otherwise
+    
+    
+    
     const msg = svgEl("text", {
       x: width / 2, y: height / 2 - 8, "text-anchor": "middle", "font-size": "13", fill: ICE,
     });
@@ -169,7 +172,7 @@ function drawXPHero(points, color) {
   const minDate = points[0].date.getTime();
   const maxDate = points[points.length - 1].date.getTime();
 
-  // same scale mapping as before, value -> pixel
+  
   function scaleX(date) {
     return padding + ((date.getTime() - minDate) / (maxDate - minDate || 1)) * (width - padding * 2);
   }
@@ -177,7 +180,7 @@ function drawXPHero(points, color) {
     return height - padding - (value / maxY) * (height - padding * 2);
   }
 
-  // grid lines with kb/mb labels on the left
+  
   const steps = 4;
   for (let i = 0; i <= steps; i++) {
     const val = (maxY / steps) * i;
@@ -199,17 +202,17 @@ function drawXPHero(points, color) {
   defs.appendChild(grad);
   svg.appendChild(defs);
 
-  // filled area under the line
+  
   svg.appendChild(svgEl("polygon", { points: areaPts, fill: `url(#${gradId})` }));
 
-  // the line itself
+  
   svg.appendChild(svgEl("polyline", {
     points: linePts, fill: "none", stroke: color, "stroke-width": "2.5",
     style: `filter: drop-shadow(0 0 4px ${color}cc);`
   }));
 
-  // one hoverable dot per calendar day that added xp, grouping same-day
-  // transactions together so the hover shows everything that landed that day
+  
+  
   const dayGroups = [];
   const dayIndex = new Map();
   points.forEach((p, idx) => {
@@ -229,7 +232,7 @@ function drawXPHero(points, color) {
     const x = scaleX(lastEntry.date), y = scaleY(lastEntry.rawTotal);
     const baseR = isLast ? 7 : 5;
 
-    // soft pulsing halo behind the dot, a passive cue that it's hoverable
+    
     const halo = svgEl("circle", { cx: x, cy: y, r: baseR * 1.6, fill: color, class: "dot-halo" });
     svg.appendChild(halo);
 
@@ -251,7 +254,7 @@ function drawXPHero(points, color) {
       ? headerHtml + itemsHtml
       : `${headerHtml}<div class="tt-sub">+${entries[0].amount.toLocaleString()} XP · ${dayLabel}</div>`;
 
-    // wider invisible hit target, the visible dot is too small to hover reliably
+    
     const hit = svgEl("circle", { cx: x, cy: y, r: 11, fill: "transparent", style: "cursor: pointer;" });
     hit.addEventListener("mouseenter", (e) => {
       dot.setAttribute("r", baseR + 2);
@@ -267,7 +270,7 @@ function drawXPHero(points, color) {
     svg.appendChild(hit);
   });
 
-  // current total, top right corner of the chart
+  
   const readout = svgEl("text", {
     x: width - padding, y: 28, "text-anchor": "end",
     "font-size": "20", fill: ICE, "font-family": "Rajdhani, sans-serif", "font-weight": "700"
@@ -295,7 +298,7 @@ const PP_STATUS_MAP = {
   audit: { label: "Auditing", cls: "status-audit" },
 };
 
-async function loadProjectProgress(source) {
+export async function loadProjectProgress(source) {
   const tbody = document.getElementById("projectProgress");
   if (!tbody) return;
 
@@ -308,7 +311,7 @@ async function loadProjectProgress(source) {
   }
 }
 
-async function loadModuleProjects(tbody) {
+export async function loadModuleProjects(tbody) {
   const query = `
     {
       user {
@@ -343,8 +346,8 @@ async function loadModuleProjects(tbody) {
   const me = (data.user || [])[0];
   const myId = me ? me.id : null;
 
-  // module projects only, piscine paths are excluded here since piscines
-  // get their own camp-level rows in loadPiscineCamps instead
+  
+  
   const piscineSources = Object.keys(SOURCE_LABELS).filter(s => s !== "module");
   const piscinePatterns = piscineSources.flatMap(s => SOURCE_PATTERNS[s] || [s]);
   ppGroups = (data.group || []).filter(g => {
@@ -367,10 +370,10 @@ async function loadModuleProjects(tbody) {
   renderProjectProgressPage();
 }
 
-// piscines aren't tracked as team "projects" the way module work is, so
-// instead of listing groups, pull the same xp feed the graph/log use for
-// this source and roll it up by camp (piscine run) instead of by exercise
-async function loadPiscineCamps(tbody, source) {
+
+
+
+export async function loadPiscineCamps(tbody, source) {
   const query = `
     {
       transaction(where: { type: { _eq: "xp" }, ${buildPathClause(source)} }) {
@@ -423,9 +426,9 @@ async function loadPiscineCamps(tbody, source) {
   renderProjectProgressPage();
 }
 
-// piscine transactions are already recorded at the individual exercise/part
-// level, so use the full path as-is rather than collapsing multiple parts
-// of the same quest into one row
+
+
+
 function campKeyForPath(path, patterns) {
   return path;
 }
@@ -574,7 +577,7 @@ function buildProjectProgressRow(g) {
   return row;
 }
 
-async function loadSkillsChart() {
+export async function loadSkillsChart() {
   const query = `
     {
       transaction(where: { type: { _ilike: "skill_%" } }) {
@@ -588,13 +591,13 @@ async function loadSkillsChart() {
   const maxByType = {};
   data.transaction.forEach(t => {
     const name = t.type.replace("skill_", "");
-    // keep the highest amount seen per skill, not a sum
+    
     maxByType[name] = Math.max(maxByType[name] || 0, t.amount);
   });
   const skills = Object.entries(maxByType)
     .map(([label, value]) => ({ label, value }))
     .sort((a, b) => b.value - a.value)
-    .slice(0, 5); // top 5 skills only, see comment above
+    .slice(0, 5); 
 
   drawHexRadar(skills);
 }
@@ -624,7 +627,7 @@ function drawHexRadar(skills) {
     svg.appendChild(svgEl("polygon", { points: pts, fill: "none", stroke: GRID, "stroke-width": "1" }));
   });
 
-  // spokes and labels
+  
   skills.forEach((s, i) => {
     const [x, y] = pointAt(i, maxR);
     svg.appendChild(svgEl("line", { x1: cx, y1: cy, x2: x, y2: y, stroke: GRID, "stroke-width": "1" }));
@@ -634,24 +637,24 @@ function drawHexRadar(skills) {
     svg.appendChild(label);
   });
 
-  // the actual data shape
+  
   const dataPts = skills.map((s, i) => pointAt(i, (s.value / maxVal) * maxR).join(",")).join(" ");
   svg.appendChild(svgEl("polygon", { points: dataPts, fill: "rgba(255,0,60,0.25)", stroke: RED, "stroke-width": "2" }));
 
   skills.forEach((s, i) => {
     const [x, y] = pointAt(i, (s.value / maxVal) * maxR);
-    // soft pulsing halo behind the dot, a passive cue that it's hoverable
+    
     const halo = svgEl("circle", { cx: x, cy: y, r: 8, fill: RED, class: "dot-halo" });
     svg.appendChild(halo);
     const dot = svgEl("circle", { cx: x, cy: y, r: 5, fill: RED, class: "hoverable-dot", style: "filter: drop-shadow(0 0 3px rgba(255,0,60,0.85));" });
     svg.appendChild(dot);
 
-    // wider invisible hit target so the small dot is easy to hover. this uses
-    // delegated mouseover/mouseout listeners (bound once, below) instead of
-    // per-element mouseenter/mouseleave, because the magnify feature clones
-    // this whole svg with cloneNode() when a card is lifted, and cloneNode
-    // never copies listeners bound directly to the original elements — the
-    // magnified version would otherwise show no hover at all.
+    
+    
+    
+    
+    
+    
     const hit = svgEl("circle", {
       cx: x, cy: y, r: 11, fill: "transparent", style: "cursor: pointer;",
       class: "skill-hit",
@@ -664,8 +667,8 @@ function drawHexRadar(skills) {
   bindSkillHoverDelegation();
 }
 
-// bound once on document so hover keeps working on the cloned/magnified
-// copy of the skills chart, not just the original in-page svg
+
+
 let skillHoverBound = false;
 function bindSkillHoverDelegation() {
   if (skillHoverBound) return;
@@ -693,7 +696,7 @@ function bindSkillHoverDelegation() {
 }
 
 
-async function loadPassFailChart() {
+export async function loadPassFailChart() {
   const query = `
     {
       result(
@@ -737,13 +740,13 @@ function drawStatusRing(pass, fail) {
 
   if (total === 0) {
   } else if (fail === 0) {
-    // 100% pass, draw one full solid ring, no dasharray, no seam
+    
     svg.appendChild(svgEl("circle", {
       cx, cy, r, fill: "none", stroke: RED, "stroke-width": "10",
       style: "filter: drop-shadow(0 0 6px rgba(255,0,60,0.7));",
     }));
   } else if (pass === 0) {
-    // 100% fail, full solid ring in the fail color (how would you even have this 💔💔💔)
+    
     svg.appendChild(svgEl("circle", {
       cx, cy, r, fill: "none", stroke: FAIL_COL, "stroke-width": "10",
     }));
@@ -787,7 +790,7 @@ function drawStatusRing(pass, fail) {
   });
 }
 
-async function loadAuditGauge() {
+export async function loadAuditGauge() {
   const query = `{ user { auditRatio totalUp totalDown } }`;
 
   const data = await graphqlQuery(query);
@@ -806,7 +809,7 @@ function drawAuditGauge(ratio) {
   const fillPct = Math.min(ratio / 1, 1);
   const color = ratio >= 1 ? RED : FLAG;
 
-  // background track
+  
   svg.appendChild(svgEl("circle", { cx, cy, r, fill: "none", stroke: "rgba(244,246,245,0.1)", "stroke-width": "9" }));
 
   if (fillPct >= 1) {
@@ -837,8 +840,8 @@ function drawAuditGauge(ratio) {
 }
 
 
-//
-async function loadSourceXPStat(source) {
+
+export async function loadSourceXPStat(source) {
   source = normalizeSource(source || "module");
   const query = `
     {
@@ -857,8 +860,8 @@ async function loadSourceXPStat(source) {
   document.getElementById("stat-xp").textContent = formatXP(rawXP);
 }
 
-//
-async function loadBestSkill() {
+
+export async function loadBestSkill() {
   const query = `
     {
       transaction(
@@ -875,14 +878,14 @@ async function loadBestSkill() {
   if (data.transaction[0]) {
     const t = data.transaction[0];
     document.getElementById("stat-best-skill").textContent = t.type.replace("skill_", "");
-    // skill amounts are capped at 100 on the platform, so this reads as a
-    // straightforward score-out-of-100 rather than a raw number
+    
+    
     const outlineEl = document.getElementById("stat-best-skill-outline");
     if (outlineEl) outlineEl.textContent = `${t.amount}/100`;
   }
 }
-//
-async function loadUplinkLog(source) {
+
+export async function loadUplinkLog(source) {
   source = source || "module";
 
   const gen = ++uplinkGen;
@@ -905,11 +908,11 @@ async function loadUplinkLog(source) {
     }
   `;
   const data = await graphqlQuery(query);
-  if (gen !== uplinkGen) return; // a newer source was picked while this was in flight
+  if (gen !== uplinkGen) return; 
   renderUplinkLog(data.transaction, gen);
 }
 
-//
+
 let uplinkGen = 0;
 
 function renderUplinkLog(entries, gen) {
@@ -929,17 +932,17 @@ function renderUplinkLog(entries, gen) {
     return `[${time}] +${t.amount.toLocaleString()} XP :: ${label}`;
   });
 
-  // typewriter the lines in one at a time so it actually reads like a live feed
+  
   let i = 0;
   function next() {
-    if (gen !== uplinkGen) return; // superseded by a newer source click, stop here
+    if (gen !== uplinkGen) return; 
     if (i >= lines.length) return;
     const line = document.createElement("div");
     line.className = "log-line";
     el.appendChild(line);
     typeLine(line, lines[i], () => {
       i++;
-      setTimeout(next, 140); // shorter gap now that there are more lines to get through
+      setTimeout(next, 140); 
     });
     el.scrollTop = el.scrollHeight;
   }
@@ -961,8 +964,8 @@ function typeLine(el, text, done) {
   })();
 }
 
-//
-function drawStreetCred(rank, level) {
+
+export function drawStreetCred(rank, level) {
   const wrap = document.getElementById("streetCred");
   if (!wrap) return;
 

@@ -1,5 +1,4 @@
-(function () {
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function pushLog(container, text, danger) {
@@ -27,7 +26,7 @@
     return clone;
   }
 
-//
+
   function spawnRgbSlices(form) {
     const bands = [
       { top: 0,  height: 16, dx: -14, tint: "red" },
@@ -77,7 +76,7 @@
     );
   }
 
-  async function playBreach(onDone) {
+  export async function playBreach(onDone) {
     const form = document.getElementById("loginForm");
     const button = form.querySelector("button[type=submit]");
     const log = document.getElementById("txLog");
@@ -95,7 +94,7 @@
     setFormDisabled(form, true);
     button.textContent = "CONNECTING...";
 
-    // 1. flickering (first step)
+    
     form.classList.add("tx-connecting");
     await sleep(160);
     form.classList.remove("tx-connecting");
@@ -125,17 +124,17 @@
     form.classList.add("tx-textfade");
     await sleep(1000);
 
-    // 5. 2nd to last, black screen with the crack from s2 edgerunners
+    
     flash.classList.add("tx-black-cut");
     await sleep(350);
 
     sessionStorage.setItem("blackwall_skip_lines", "1");
 
-    // 6. Last step, cut the screen in two revealed the dashboard
+    
     onDone();
   }
 
-  async function playIntrusion(message, onDone) {
+  export async function playIntrusion(message, onDone) {
     const form = document.getElementById("loginForm");
     const button = form.querySelector("button[type=submit]");
     const log = document.getElementById("txLog");
@@ -153,7 +152,7 @@
     setFormDisabled(form, true);
     button.textContent = "AUTHENTICATING...";
 
-    // 1. failed login
+    
     form.classList.add("tx-connecting");
     await sleep(150);
     form.classList.remove("tx-connecting");
@@ -168,12 +167,12 @@
     }
     form.classList.remove("tx-scanning");
 
-    // 2. everything freezes
+    
     form.classList.add("tx-freeze");
     await sleep(140);
     form.classList.remove("tx-freeze");
 
-    // 3. big glitch, screen shake, red warning cascade
+    
     form.classList.add("tx-intrusion-glitch");
     document.body.classList.add("tx-shake");
     clearLog(log);
@@ -183,7 +182,7 @@
       await sleep(150);
     }
 
-    // password field: dots -> blocks -> clear
+    
     const originalType = password.type;
     password.type = "text";
     password.value = "\u2588".repeat(Math.max(password.value.length, 8));
@@ -191,11 +190,11 @@
     password.value = "";
     password.type = originalType;
 
-    //
+    
     clearLog(log);
     log.classList.remove("tx-log-active");
 
-    // 4. the box itself duplicates like pop ups
+    
     const dupes = spawnDupeBoxes(form);
 
     document.body.classList.remove("tx-shake");
@@ -207,7 +206,7 @@
 
     await sleep(750);
 
-    // 5. the echoes snap back off screen, real form stays put with its error
+    
     await removeDupeBoxes(dupes);
 
     await sleep(450);
@@ -218,5 +217,4 @@
     onDone();
   }
 
-  window.BlackwallTransition = { playBreach, playIntrusion };
-})();
+

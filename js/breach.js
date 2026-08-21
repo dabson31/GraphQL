@@ -1,7 +1,8 @@
 
 
-(function () {
-  const GRID_SIZE = 5;
+
+
+const GRID_SIZE = 5;
   const CODE_POOL = ["1C", "E9", "55", "BD", "A4", "7F"];
   const BUFFER_SIZE = 7;
   const TIME_LIMIT = 67;
@@ -31,9 +32,9 @@
   ];
 
   let grid = [];
-  let buffer = []; // { r, c, code }
-  let used = new Set(); // "r,c"
-  let constraintAxis = "row"; // axis the NEXT pick is constrained to
+  let buffer = []; 
+  let used = new Set(); 
+  let constraintAxis = "row"; 
   let constraintValue = 0;
   let timeLeft = TIME_LIMIT;
   let timerHandle = null;
@@ -50,15 +51,15 @@
     return r + "," + c;
   }
 
-  // Try to lay a daemon's codes along a legal alternating path so the
-  // puzzle is always solvable. Falls back to overwriting on repeated
-  // failure rather than leaving a daemon unplaceable.
+  
+  
+  
   function embedSequence(codes) {
     for (let attempt = 0; attempt < 60; attempt++) {
       const path = [];
       let r = 0;
       let c = rand(GRID_SIZE);
-      let axis = "col"; // axis the *next* step is constrained to
+      let axis = "col"; 
       path.push([r, c]);
 
       let ok = true;
@@ -84,7 +85,7 @@
 
       if (!ok) continue;
 
-      // check for conflicts against already-placed codes
+      
       let conflict = false;
       for (let i = 0; i < path.length; i++) {
         const [pr, pc] = path[i];
@@ -311,5 +312,16 @@
     resetGame();
   }
 
-  document.addEventListener("DOMContentLoaded", init);
-})();
+  
+  
+  
+  
+  let initialized = false;
+  export function startBreachProtocol() {
+    if (!initialized) {
+      init();
+      initialized = true;
+    } else {
+      resetGame();
+    }
+  }

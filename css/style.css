@@ -28,11 +28,19 @@ html, body {
   min-height: 100vh;
   background: var(--void);
   color: var(--ice);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   overflow-x: hidden;
 }
 
-/* ambient background: grid + scanlines + noise */
+
+.view {
+  display: none;
+}
+.view.is-active {
+  display: block;
+}
+
+
 
 body {
   background-image:
@@ -79,7 +87,7 @@ body::after {
   50% { opacity: 0.88; }
 }
 
-/* rare, quick full-screen desync, a single frame-drop stutter every so often so the interface reads as a live feed under load, not a static page. */
+
 @keyframes deep-glitch {
   0%, 98.5%, 100% { transform: translate(0, 0); filter: none; }
   98.7% { transform: translate(-2px, 1px); filter: hue-rotate(8deg); }
@@ -111,7 +119,7 @@ body::after {
 
 ::selection { background: var(--red); color: var(--void); }
 
-/* utility: HUD corner brackets */
+
 
 .hud-frame {
   position: relative;
@@ -146,7 +154,7 @@ body::after {
   border-right: 2px solid var(--icon-color, var(--red));
 }
 
-/* glitch text */
+
 
 .glitch {
   position: relative;
@@ -195,7 +203,7 @@ body::after {
   100% { transform: translate(-1px, -1px); }
 }
 
-/* LOGIN PAGE */
+
 
 .login-wrap {
   min-height: 100vh;
@@ -424,7 +432,7 @@ input:focus-visible {
   50%, 100% { opacity: 0; }
 }
 
-/* PROFILE DASHBOARD */
+
 
 .dashboard {
   min-height: 100vh;
@@ -556,14 +564,14 @@ input:focus-visible {
   width: 100%;
 }
 
-/* the hero XP graph (the main center of attention) */
+
 .hero-graph {
   position: relative;
   overflow: hidden;
 }
 
 .hero-graph::before {
-  /* faint pattern watermark behind the graph */
+  
   content: "";
   position: absolute;
   inset: 0;
@@ -605,7 +613,7 @@ input:focus-visible {
 }
 
 .stat-card::after {
-  /* small pulsing status LED, top right of every card, tinted per-card now */
+  
   content: "";
   position: absolute;
   top: 10px;
@@ -619,7 +627,7 @@ input:focus-visible {
 }
 
 .stat-card::before {
-  /* oversized ghost glyph bottom-right, gives each endpoint its own silhouette */
+  
   content: attr(data-icon);
   position: absolute;
   bottom: -6px;
@@ -654,10 +662,7 @@ input:focus-visible {
   animation-delay: var(--glitch-delay, 0s);
 }
 
-/* subtitle/label distortion, a quick chromatic-split jitter, most of the
-   cycle sits still so it reads as an occasional signal hiccup rather than
-   a constant wobble. --glitch-delay is set per-element from js/boot.js so
-   every label on the page doesn't glitch in the same frame */
+
 @keyframes label-glitch {
   0%, 93%, 100% { transform: translate(0, 0); text-shadow: 0 0 8px rgba(255, 0, 60,0.4); }
   94% { transform: translate(-1px, 0); text-shadow: 1px 0 0 #00f0ff, -1px 0 0 var(--red); }
@@ -681,13 +686,13 @@ input:focus-visible {
   animation: value-flicker 4.5s infinite;
 }
 
-/* the wide tiles (module xp, best skill) get a left rule since they sit flush-left in the card already */
+
 .stat-card-wide .stat-value {
   padding-left: 10px;
   border-left: 2px solid var(--icon-color, var(--red));
 }
 
-/* fills the dead space under each reading with a short glow tick instead of inflating the font,  a live gauge readout, not just a bigger label */
+
 .stat-split-item .stat-value::after,
 .stat-card-wide .stat-value::after {
   content: "";
@@ -732,7 +737,7 @@ input:focus-visible {
 
 .interactive-panel { cursor: pointer; }
 
-/* skillsChart / passFailChart / auditGauge */
+
 .chart-card svg {
   width: 100%;
   height: auto;
@@ -941,7 +946,7 @@ input:focus-visible {
   text-align: center;
 }
 
-/* data source toggle, fills the empty space under the skill matrix */
+
 .source-toggle-card {
   justify-content: flex-start;
   align-items: stretch;
@@ -975,7 +980,7 @@ input:focus-visible {
 }
 
 .source-btn::after {
-  /* small live-dot in the source color, purely decorative */
+  
   content: "";
   position: absolute;
   top: 50%; right: 12px;
@@ -1008,7 +1013,7 @@ input:focus-visible {
   line-height: 1.5;
 }
 
-/* thin animated scan line sweeping inside the graph panel */
+
 .hero-graph .scan-line {
   position: absolute;
   left: 0; right: 0;
@@ -1065,7 +1070,7 @@ input:focus-visible {
 
 svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 
-/* BOOT SEQUENCE OVERLAY */
+
 
 .boot-overlay {
   position: fixed;
@@ -1093,6 +1098,48 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 }
 
 .boot-row::before { content: "> "; color: var(--red); }
+
+
+
+.pre-boot-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background: var(--void);
+  padding: 28px 24px;
+  cursor: pointer;
+  transition: opacity 0.45s ease;
+}
+
+.pre-boot-overlay.fading { opacity: 0; pointer-events: none; }
+
+.pre-boot-prompt {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--red);
+  text-shadow: 0 0 8px rgba(255, 0, 60, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.pre-boot-prompt.show {
+  opacity: 1;
+  animation: pre-boot-blink 1.1s steps(2, jump-none) infinite;
+}
+
+@keyframes pre-boot-blink {
+  50% { opacity: 0.3; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pre-boot-prompt.show { animation: none; }
+}
 
 .split-crack {
   position: fixed;
@@ -1144,7 +1191,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 .neural-split.split-open .split-left  { transform: translate3d(-55%, 0, 0); }
 .neural-split.split-open .split-right { transform: translate3d(55%, 0, 0); }
 
-/* IDENTITY BOX, rank badge + uptime clock */
+
 
 .identity-box { flex-wrap: wrap; row-gap: 4px; }
 
@@ -1169,7 +1216,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   font-family: var(--font-mono);
 }
 
-/* UPLINK LOG, left column, stacked directly under the data source toggle so the feed being reported on is the panel right above it */
+
 
 .uplink-card { align-items: stretch; justify-content: flex-start; }
 
@@ -1197,7 +1244,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 
 .uplink-log .log-line::before { content: "$ "; color: var(--cyan); }
 
-/* STREET CRED (right column, xp, rank blah blah) */
+
 
 .cred-card { align-items: stretch; justify-content: flex-start; }
 
@@ -1434,19 +1481,19 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   .identity-uptime { display: none; }
 }
 
-/* STAT STRIP, wide xp tile matched to the hero graph's width */
+
 
 .stat-card-wide {
   min-height: 150px;
 }
 
-/* passed/failed and given/received tiles, half the width of the xp tile, which is itself the same width as the hero graph */
+
 
 .stat-value-lg {
   font-size: 44px;
 }
 
-/* small badge under the big value, module XP's "distance to next MB" and best skill's "N/100" score, sits between the value and the sub-caption */
+
 .stat-outline {
   display: inline-block;
   margin-top: 4px;
@@ -1496,21 +1543,15 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 
 .center-visuals > * { flex: 1; }
 
-/* left column carries a spacer, then skill matrix, data source toggle, uplink
-   log, best skill — the uplink log is trimmed so best skill fits underneath,
-   fixed at the same 150px as module xp (right column) and the hero substrip
-   (center column) so all three sit on the same bottom level */
+
 .center-visuals:not(.right) > .source-toggle-card { flex: 0.65; }
 .center-visuals:not(.right) > .uplink-card { flex: 0.85; }
 .center-visuals:not(.right) > .stat-card-wide { flex: 0 0 150px; }
 
-/* skill matrix (left) and pass/fail (right) pinned to an identical,
-   viewport-scaled height instead of a flex ratio — the two columns have
-   different numbers/weights of siblings, so equal flex-grow alone wouldn't
-   produce equal pixel heights */
+
 .matrix-match { flex: 0 0 clamp(220px, 28vh, 300px); }
 
-/* street cred content: (rank panel + divider + system readout)*/
+
 .center-visuals.right .cred-card { flex: 1.6; }
 .center-visuals.right > .stat-card-wide { flex: 0 0 150px; }
 
@@ -1521,15 +1562,10 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   flex-direction: column;
   gap: 12px;
   min-height: 0;
-  /* stretches to match the left/right columns' height (default grid
-     stretch) so the piscine comparison card below can flex-grow into
-     whatever room that leaves under passed/failed */
+  
 }
 
-/* no longer flex:1 + a fixed px cap — sized with clamp() (viewport-relative,
-   with sane min/max) so it scales across screen resolutions instead of
-   staying a fixed pixel height. lands roughly level with the bottom of the
-   uplink log in the left column, not the full column including best skill */
+
 .hero-graph {
   flex: 0 1 clamp(340px, 46vh, 520px);
   max-height: clamp(340px, 46vh, 520px);
@@ -1621,7 +1657,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   text-overflow: ellipsis;
 }
 
-/* RAM is shown as "used/total GB" instead of a % (game reference) */
+
 .sys-value-num { width: 68px; font-size: 9px; }
 
 #sysGpuVal { width: 90px; font-size: 8px; letter-spacing: 0.02em; }
@@ -1654,7 +1690,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   z-index: 1201;
   margin: 0;
   overflow: visible;
-  /* auto (not none) so the enlarged text can actually be selected/copied */
+  
   pointer-events: auto;
   cursor: text;
   user-select: text;
@@ -1710,7 +1746,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   opacity: 1;
 }
 
-/* magnified detail-row (profile-detail.html), a plain .detail-row is a thin space-between line */
+
 .magnify-clone.magnify-row-clone {
   display: flex !important;
   flex-direction: column !important;
@@ -1806,32 +1842,42 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   position: fixed;
   z-index: 4000;
   pointer-events: none;
-  background: rgba(3, 3, 4, 0.92);
-  border: 1px solid var(--panel-line);
-  padding: 6px 10px;
-  font-family: var(--font-mono);
-  font-size: 11px;
+  background: rgba(8, 5, 7, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 0, 60, 0.4);
+  border-left: 3px solid var(--red);
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-family: var(--font-display);
+  font-size: 14px;
   color: var(--ice);
-  box-shadow: 0 0 12px rgba(255, 0, 60,0.25);
+  box-shadow: 0 0 28px rgba(255, 0, 60, 0.28), 0 8px 24px rgba(0, 0, 0, 0.5);
   opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 0.12s ease, transform 0.12s ease;
+  transform: translateY(6px) scale(0.96);
+  transition: opacity 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
   white-space: nowrap;
 }
 
-.chart-tooltip.is-visible { opacity: 1; transform: translateY(0); }
+.chart-tooltip.is-visible { opacity: 1; transform: translateY(0) scale(1); }
 
 .chart-tooltip .tt-title {
   color: var(--red);
   font-weight: 700;
-  letter-spacing: 0.04em;
-  margin-bottom: 2px;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  margin-bottom: 5px;
 }
 
-.chart-tooltip .tt-sub { color: var(--ice-dim); font-size: 10px; }
+.chart-tooltip .tt-sub {
+  color: var(--ice-dim);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+}
 
-/* passive pulsing halo behind hoverable dots, a hint they're interactive
-   without needing to actually mouse over them first */
+
 .dot-halo {
   transform-box: fill-box;
   transform-origin: center;
@@ -1881,7 +1927,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   50%      { opacity: 0.25; }
 }
 
-/* the transitions for login fail/succeed */
+
 
 @keyframes tx-connect-flicker {
   0%   { transform: translate(0, 0);      filter: none; }
@@ -1939,7 +1985,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   100% { transform: translateX(0); }
 }
 
-/* SANDEVISTAN CURSOR TRAIL */
+
 
 .sdv-layer {
   position: fixed;
@@ -1953,7 +1999,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   position: fixed;
   width: 16px;
   height: 22px;
-  margin: -1px 0 0 -1px; /* pins the arrow tip to the cursor point */
+  margin: -1px 0 0 -1px; 
   transform-origin: 2px 2px;
   transform: rotate(-12deg) scale(var(--sdv-scale, 1));
   clip-path: polygon(
@@ -2109,7 +2155,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
     animation: none !important;
   }
 }
-/* BREACH PROTOCOL minigame, gates unauthorized.html */
+
 
 .breach-wrap {
   min-height: 100vh;
@@ -2458,13 +2504,11 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   .breach-body { grid-template-columns: 1fr; }
 }
 
-/*
-   BLACKWALL HIDDEN TERMINAL
-   click-the-title 8 times in total, see js/terminal.js for the staged reveal (glitch -> flicker -> restricted label -> shell) */
+
 
 .title-band .glitch { cursor: pointer; }
 
-/* 3 clicks: one-shot jitter burst, plays once then removes itself */
+
 .bw-title-glitch { animation: bw-title-jitter 0.35s steps(2, end) 1; }
 
 @keyframes bw-title-jitter {
@@ -2476,7 +2520,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   100% { transform: translate(0, 0); filter: none; }
 }
 
-/* 5 clicks: sits on top of the jitter, keeps going until reset/opened */
+
 .bw-title-flicker { animation: bw-title-flicker 0.12s steps(1, end) infinite; }
 
 @keyframes bw-title-flicker {
@@ -2487,7 +2531,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   95%           { opacity: 1; }
 }
 
-/* 7 clicks */
+
 .bw-restricted-label {
   font-family: var(--font-mono);
   font-size: 0.72rem;
@@ -2505,7 +2549,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   animation: bw-title-flicker 0.4s steps(1, end) 2;
 }
 
-/* 8 clicks: the shell itself */
+
 .bw-terminal-overlay {
   position: fixed;
   inset: 0;
@@ -2605,7 +2649,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   font-size: 0.85rem;
 }
 
-/* shownetrunners command */
+
 .bw-terminal-chart {
   overflow-x: auto;
   overflow-y: hidden;
@@ -2689,7 +2733,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   --src-color: #ff8c1a;
 }
 
-/* ===== RESPONSIVE ===== */
+
 
 @media (max-width: 900px) {
   .dashboard { padding: 16px; }

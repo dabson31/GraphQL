@@ -1,11 +1,16 @@
-(function () {
+
+
+
+
+
+export function runBootSequence() {
   const overlay = document.getElementById("bootOverlay");
   const linesEl = document.getElementById("bootLines");
   if (!overlay || !linesEl) return;
 
   const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const alreadyRan = sessionStorage.getItem("blackwall_booted");
-//
+
   const skipLines = sessionStorage.getItem("blackwall_skip_lines");
 
   if (prefersReduced || alreadyRan) {
@@ -27,14 +32,14 @@
   ];
 
   const CRACK_POINTS = [
-    [0.50, 0],                 // start, top-center
-    [0.50, 0.40],               // straight down to 40% of the screen
-    [0.443, 0.457],              // 225° angle (down-left) for ~8%
-    [0.52, 0.457],                // horizontal jog 2% right of center
-    [0.52, 0.537],                // straight down ~8%
-    [0.50, 0.537],               // horizontal jog 2% back left, to center
-    [0.50, 1],                  // straight down to the bottom of the screen
-    // i had to test around with the values to get the crack to look right
+    [0.50, 0],                 
+    [0.50, 0.40],               
+    [0.443, 0.457],              
+    [0.52, 0.457],                
+    [0.52, 0.537],                
+    [0.50, 0.537],               
+    [0.50, 1],                  
+    
   ];
 
   const SVG_NS = "http://www.w3.org/2000/svg";
@@ -51,8 +56,8 @@
     return polygonStr([[1, 0], ...CRACK_POINTS, [1, 1]]);
   }
 
-  // builds the crack sized to the real current viewport, and pre-computes
-  // its exact stroke-dasharray/dashoffset via the SVG API so the draw is always a single continuous stroke
+  
+  
   function buildCrackSvg() {
     const w = window.innerWidth;
     const h = window.innerHeight;
@@ -77,8 +82,8 @@
     return { svg, path };
   }
 
-  // once the boot text is done, the neural dashboard is already sitting
-  // there underneath, sealed behind the flat void overlay. it splits in two with the transition
+  
+  
   function shatterOverlay() {
     const { svg: crack, path: crackPath } = buildCrackSvg();
     document.body.appendChild(crack);
@@ -116,7 +121,7 @@
         wrap.remove();
         crack.remove();
       }, totalMs);
-    }, 1200 + 350); // show the cracked overlay (edgerunners s2 reference) for a beat after the 1.2s draw finishes, before it tears open
+    }, 1200 + 350); 
   }
 
   let i = 0;
@@ -147,4 +152,4 @@
   } else {
     nextLine();
   }
-})();
+}

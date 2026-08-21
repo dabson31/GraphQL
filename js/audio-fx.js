@@ -4,7 +4,7 @@ const HOVER_SOUND_VOLUME = 0.5;
 const BACKGROUND_NOISE_VOLUME = 0.5;
 const HOVER_TARGET_SELECTOR = "button, a, .source-btn, .identity-box, .logout-btn, .back-link, [data-magnify]";
 
-(function () {
+export function initAudioFx() {
   let hoverAudio = null;
   if (HOVER_SOUND_URL) {
     hoverAudio = new Audio(HOVER_SOUND_URL);
@@ -39,4 +39,4 @@ const HOVER_TARGET_SELECTOR = "button, a, .source-btn, .identity-box, .logout-bt
   attachHoverSound();
   new MutationObserver(attachHoverSound).observe(document.body, { childList: true, subtree: true });
   startBackgroundNoise();
-})();
+}

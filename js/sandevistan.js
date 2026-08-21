@@ -1,9 +1,9 @@
-(function () {
+export function initSandevistan() {
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   if (window.matchMedia && window.matchMedia("(hover: none)").matches) return;
 
-  const GHOST_MIN_VELOCITY = 0.55;   // px/ms below this, no trail spawns at all
-  const GHOST_SPAWN_GAP_MS = 18;     // min time between spawned ghost pairs
+  const GHOST_MIN_VELOCITY = 0.55;   
+  const GHOST_SPAWN_GAP_MS = 18;     
   const GHOST_LIFETIME_MS = 260;
 
   const layer = document.createElement("div");
@@ -14,7 +14,7 @@
   let lastSpawnT = 0;
 
   function spawnGhost(x, y, angleDeg, speedNorm) {
-    // two offset copies, red pushed one way, cyan the other, same split
+    
     const offset = 3 + speedNorm * 5;
     const rad = (angleDeg * Math.PI) / 180;
     const ox = Math.cos(rad + Math.PI / 2) * offset;
@@ -46,7 +46,7 @@
     const dt = Math.max(1, now - lastT);
     const dx = x - lastX, dy = y - lastY;
     const dist = Math.hypot(dx, dy);
-    const velocity = dist / dt; // px per ms
+    const velocity = dist / dt; 
 
     if (velocity >= GHOST_MIN_VELOCITY && now - lastSpawnT >= GHOST_SPAWN_GAP_MS) {
       const angleDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
@@ -57,4 +57,4 @@
 
     lastX = x; lastY = y; lastT = now;
   }, { passive: true });
-})();
+}

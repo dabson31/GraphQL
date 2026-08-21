@@ -3,37 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BLACKWALL // ACCESS</title>
+  <title>BLACKWALL // GRAPHQL</title>
   <link rel="stylesheet" href="css/style.css?v=4">
+  <link rel="icon" type="image/png" href="assets/icon.png">
 </head>
 <body>
-  <div class="bw-sweep"></div>
+  
 
-  <div class="login-wrap">
-    <form id="loginForm" class="hud-frame">
-      <h1 class="glitch" data-text="BLACKWALL">BLACKWALL</h1>
-      <span class="login-tag">// netrunner access terminal</span>
-
-      <input id="identifier" placeholder="USERNAME OR EMAIL" required autocomplete="username" />
-      <input id="password" type="password" placeholder="PASSWORD" required autocomplete="current-password" />
-      <button type="submit">Jack In</button>
-
-      <p id="errorMsg" class="error"></p>
-
-      <!-- scan/breach/intrusion log readout, overlays the form during a
-           login attempt, see js/login-transitions.js -->
-      <div id="txLog" class="tx-log"></div>
-    </form>
+  
+  <div id="preBootOverlay" class="pre-boot-overlay">
+    <div id="preBootPrompt" class="pre-boot-prompt">click anything to continue</div>
   </div>
 
-  <!-- full-screen hard-flash beat used by the success transition -->
-  <div id="txFlash" class="tx-flash"><span id="txFlashText"></span></div>
+  
+  <div id="app"></div>
 
-  <a href="unauthorized.html" class="unauth-link">access unauthorized information</a>
-
-  <script src="js/audio-fx.js"></script>
-  <script src="js/login-transitions.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/sandevistan.js"></script>
+  <script type="module" src="js/pre-boot.js"></script>
+  <script type="module" src="js/router.js"></script>
 </body>
 </html>

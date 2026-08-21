@@ -1,10 +1,20 @@
-const MODULE_ONLY_FILTER = `path: { _nilike: "%piscine%" }`;
-const MODULE_XP_FILTER = `_or: [{ ${MODULE_ONLY_FILTER} }, { amount: { _eq: 70000 }, object: { name: { _eq: "Piscine JS" } } }]`;
+import { graphqlQuery } from "./api.js";
+import { drawStreetCred, loadBestSkill } from "./charts.js";
+
+export const MODULE_ONLY_FILTER = `path: { _nilike: "%piscine%" }`;
+export const MODULE_XP_FILTER = `_or: [{ ${MODULE_ONLY_FILTER} }, { amount: { _eq: 70000 }, object: { name: { _eq: "Piscine JS" } } }]`;
 
 
-sessionStorage.removeItem("blackwall_profile_target");
 
-// street cred tiers (ranks), renamed to fit the theme
+
+
+
+
+export function clearProfileTarget() {
+  sessionStorage.removeItem("blackwall_profile_target");
+}
+
+
 const RANKS = [
   { min: 0,        title: "Chrome Rookie",     desc: "fresh jack, still smells like the ripperdoc's chair" },
   { min: 10000,     title: "Edgerunner",        desc: "running gigs, building a rep on the street" },
@@ -14,8 +24,8 @@ const RANKS = [
   { min: 800000,   title: "Blackwall Breaker", desc: "the kind of legend corpo suits tell rookies about" },
 ];
 
-// returns the current tier + how far into the next one you are, for progress bars
-function computeRank(xp) {
+
+export function computeRank(xp) {
   xp = xp || 0;
   let current = RANKS[0];
   let next = RANKS[1];
@@ -30,8 +40,8 @@ function computeRank(xp) {
   return { current, next, progress: Math.max(0, Math.min(1, progress)), xp };
 }
 
-// calc the xp for the levels to add with the rank
-function computeLevel(xp) {
+
+export function computeLevel(xp) {
   xp = xp || 0;
   const level = Math.floor(Math.sqrt(xp / 1000)) + 1;
   const xpForLevel = (n) => (n - 1) ** 2 * 1000;
@@ -41,9 +51,9 @@ function computeLevel(xp) {
   return { level, progress, xpToNext: Math.max(0, nextFloor - xp) };
 }
 
-// converts raw xp amount into kb/mb, only call this right before putting it on the page
-// dont run this on a number before doing math with it, itll turn into a string
-function formatXP(rawAmount) {
+
+
+export function formatXP(rawAmount) {
   rawAmount = rawAmount || 0;
   if (rawAmount >= 1_000_000) return (rawAmount / 1_000_000).toFixed(1) + " MB";
   if (rawAmount >= 1_000) return (rawAmount / 1_000).toFixed(1) + " kB";
@@ -51,14 +61,14 @@ function formatXP(rawAmount) {
 }
 
 
-function remainderToNextMB(rawAmount) {
+export function remainderToNextMB(rawAmount) {
   rawAmount = rawAmount || 0;
   const nextMB = (Math.floor(rawAmount / 1_000_000) + 1) * 1_000_000;
   const remainder = nextMB - rawAmount;
   return formatXP(remainder) + " to next MB";
 }
 
-async function loadProfile() {
+export async function loadProfile() {
 const query = `
     {
       user {
@@ -84,7 +94,7 @@ function renderProfile(data) {
     const user = data.user[0]
     const rawXP = data.xpAgg.aggregate.sum.amount || 0;
 
-    // totalUp/totalDown are xp amounts, not audit counts, so they go through formatXP too
+    
     const xpGiven = user.totalUp || 0;
     const xpReceived = user.totalDown || 0;
 
@@ -94,15 +104,15 @@ function renderProfile(data) {
     document.getElementById("stat-up").textContent = formatXP(xpGiven);
     document.getElementById("stat-down").textContent = formatXP(xpReceived);
 
-    // rank badge under the name in the identity box, purely cosmetic but ties
-    // the whole profile together, same tier system drives the street cred panel
+    
+    
     const rank = computeRank(rawXP);
     const level = computeLevel(rawXP);
     const rankEl = document.getElementById("topRank");
     if (rankEl) rankEl.textContent = `LVL ${level.level} · ${rank.current.title}`;
 
-    drawStreetCred(rank, level); // lives in charts.js, needs the same xp figure so it's called from here
+    drawStreetCred(rank, level); 
 
-    // pass/fail counts are handled by loadPassFailChart in charts.js
+    
     loadBestSkill();
 }
