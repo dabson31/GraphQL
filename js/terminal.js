@@ -1,16 +1,5 @@
 import { graphqlQuery } from "./api.js";
 
-
-
-
-
-
-
-
-
-
-
-
 let boundTitleEl = null;
 
 let terminalBuilt = false;
@@ -20,22 +9,15 @@ export function initTerminalEasterEgg() {
   const titleEl = document.querySelector(".title-band .glitch");
   if (!titleEl) return;
 
-  
-  
-  
-  
   if (!terminalBuilt) {
     terminalBuilt = true;
     openTerminalRef = buildTerminalSingleton();
   }
 
-  if (titleEl === boundTitleEl) return; 
+  if (titleEl === boundTitleEl) return;
   boundTitleEl = titleEl;
   bindTitleClicks(titleEl);
 }
-
-
-
 
 function bindTitleClicks(titleEl) {
   const CLICK_DECAY_MS = 2200;
@@ -91,10 +73,7 @@ function bindTitleClicks(titleEl) {
   });
 }
 
-
-
 function buildTerminalSingleton() {
-  
 
   let termEl = null;
   let inputEl = null;
@@ -314,37 +293,6 @@ function buildTerminalSingleton() {
     }
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   async function runShowNetrunners(flags) {
     printLine("tracing cohort uplink...");
     try {
@@ -467,23 +415,7 @@ function buildTerminalSingleton() {
     }
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
   const SWEEP_DEFAULT_MAX = 1500;
   const SWEEP_BATCH_SIZE = 20;      
   const SWEEP_BATCH_DELAY_MS = 120; 
@@ -501,7 +433,7 @@ function buildTerminalSingleton() {
     printLine(`most ids will come back empty (no access / no such event) -- that's expected.`, "bw-terminal-cryptic");
     printLine("");
 
-    const seen = new Map(); 
+    const seen = new Map(); // userId -> { login, auditRatio }
     let hitEvents = 0;
     let emptyOk = 0;
     let deniedCount = 0;
@@ -524,8 +456,6 @@ function buildTerminalSingleton() {
             { eid: id }
           )
             .then((r) => ({ ok: true, data: r }))
-            
-            
             .catch((err) => ({ ok: false, error: err.message }))
         )
       );
@@ -543,7 +473,7 @@ function buildTerminalSingleton() {
           emptyOk++;
         }
         rows.forEach((row) => {
-          if (!row.userId || seen.has(row.userId)) return; 
+          if (!row.userId || seen.has(row.userId)) return; // dedupe on uid
           seen.set(row.userId, { login: row.userLogin, auditRatio: row.userAuditRatio || 0 });
         });
       });
@@ -586,10 +516,6 @@ function buildTerminalSingleton() {
     });
   }
 
-  
-  
-  
-  
   const CHART_BAR_MAX = 36;
 
   function printChart(members, myLogin) {
@@ -645,7 +571,7 @@ function buildTerminalSingleton() {
     return `${oct(h)}.${oct(h >> 8)}.${oct(h >> 16)}.${oct(h >> 24)}`;
   }
 
-  function goToProfile(target) {
+function goToProfile(target) {
     if (target) {
       sessionStorage.setItem("blackwall_profile_target", target);
       printLine(`redirecting to netrunner file: ${target}...`, "bw-terminal-cryptic");
@@ -655,6 +581,7 @@ function buildTerminalSingleton() {
     }
     setTimeout(() => {
       window.navigateTo("/profile-detail");
+      closeTerminal();
     }, 260);
   }
 

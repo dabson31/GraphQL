@@ -13,9 +13,8 @@ export function initAudioFx() {
 
   function playHoverSound() {
     if (!HOVER_SOUND_URL) return;
-    const instance = hoverAudio.cloneNode();
-    instance.volume = HOVER_SOUND_VOLUME;
-    instance.play().catch(() => {});
+    hoverAudio.currentTime = 0;
+    hoverAudio.play().catch(() => {});
   }
 
   function attachHoverSound() {
