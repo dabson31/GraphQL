@@ -258,6 +258,7 @@
           els.accessBtn.href = REDIRECT_URL;
           els.accessBtn.target = "_blank";
           els.accessBtn.rel = "noopener";
+          els.accessBtn.removeAttribute("data-link");
         }
       }
     } else {
@@ -312,12 +313,6 @@
   
   
   
-  let initialized = false;
   export function startBreachProtocol() {
-    if (!initialized) {
-      init();
-      initialized = true;
-    } else {
-      resetGame();
-    }
+    init();
   }
