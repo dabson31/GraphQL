@@ -1,5 +1,5 @@
 import { graphqlQuery } from "./api.js";
-import { formatXP, MODULE_ONLY_FILTER, MODULE_XP_FILTER } from "./profile.js";
+import { formatXP, MODULE_ONLY_FILTER, MODULE_XP_FILTER, renderProfile } from "./profile.js";
 
 const NS = "http://www.w3.org/2000/svg";
 const RED = "#ff003c";
@@ -35,23 +35,15 @@ function ensureTooltip() {
 }
 function positionTooltip(el, evt) {
   const pad = 16;
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
   const rect = el.getBoundingClientRect();
-  const w = rect.width || el.offsetWidth || 240;
-  const h = rect.height || el.offsetHeight || 60;
-
+  const width = rect.width || 240;
+  const height = rect.height || 60;
   let left = evt.clientX + pad;
   let top = evt.clientY + pad;
-
-  if (left + w > vw - pad) left = evt.clientX - pad - w;
-  if (left < pad) left = pad;
-  if (left + w > vw - pad) left = Math.max(pad, vw - pad - w);
-
-  if (top + h > vh - pad) top = evt.clientY - pad - h;
-  if (top < pad) top = pad;
-  if (top + h > vh - pad) top = Math.max(pad, vh - pad - h);
-
+  if (left + width > window.innerWidth - pad) left = evt.clientX - pad - width;
+  if (top + height > window.innerHeight - pad) top = evt.clientY - pad - height;
+  left = Math.max(pad, Math.min(left, window.innerWidth - width - pad));
+  top = Math.max(pad, Math.min(top, window.innerHeight - height - pad));
   el.style.left = left + "px";
   el.style.top = top + "px";
 }
@@ -68,6 +60,34 @@ function moveTooltip(evt) {
 function hideTooltip() {
   if (tooltipEl) tooltipEl.classList.remove("is-visible");
 }
+
+
+let activeTooltipHit = null;
+let activeTooltipReset = null;
+function closeActiveTooltip() {
+  if (activeTooltipReset) activeTooltipReset();
+  activeTooltipHit = null;
+  activeTooltipReset = null;
+  hideTooltip();
+}
+function openTooltip(evt, hit, html, onOpen, onClose) {
+  if (activeTooltipHit === hit) {
+    
+    closeActiveTooltip();
+    return;
+  }
+  closeActiveTooltip();
+  activeTooltipHit = hit;
+  activeTooltipReset = onClose;
+  if (onOpen) onOpen();
+  showTooltip(evt, html);
+}
+
+document.addEventListener("click", (e) => {
+  if (activeTooltipHit && !e.target.closest(".chart-hit")) {
+    closeActiveTooltip();
+  }
+});
 
 
 
@@ -113,31 +133,34 @@ function buildPathClause(source) {
 }
 
 
-export async function loadXPOverTimeChart(source) {
+export async function loadXPOverTimeChart(source, preloadedTx) {
   source = normalizeSource(source || "module");
 
-  const query = `
-    {
-      transaction(
-        where: { type: { _eq: "xp" }, ${buildPathClause(source)} }
-        order_by: { createdAt: asc }
-      ) {
-        amount
-        createdAt
-        path
-        object {
-          name
-          type
+  let tx = preloadedTx;
+  if (!tx) {
+    const query = `
+      {
+        transaction(
+          where: { type: { _eq: "xp" }, ${buildPathClause(source)} }
+          order_by: { createdAt: asc }
+        ) {
+          amount
+          createdAt
+          path
+          object {
+            name
+            type
+          }
         }
       }
-    }
-  `;
-
-  const data = await graphqlQuery(query);
+    `;
+    const data = await graphqlQuery(query);
+    tx = data.transaction;
+  }
 
   
   let running = 0;
-  const points = data.transaction.map(t => {
+  const points = tx.map(t => {
     running += t.amount;
     const label = (t.object && t.object.name) ? t.object.name : (t.path || "unknown").split("/").pop();
     return { date: new Date(t.createdAt), rawTotal: running, amount: t.amount, label };
@@ -269,7 +292,7 @@ function drawXPHero(points, color) {
       : `${headerHtml}<div class="tt-sub">+${entries[0].amount.toLocaleString()} XP · ${dayLabel}</div>`;
 
     
-    const hit = svgEl("circle", { cx: x, cy: y, r: 11, fill: "transparent", style: "cursor: pointer;" });
+    const hit = svgEl("circle", { cx: x, cy: y, r: 11, fill: "transparent", class: "chart-hit", style: "cursor: pointer;" });
     hit.addEventListener("mouseenter", (e) => {
       dot.setAttribute("r", baseR + 2);
       dot.setAttribute("opacity", "1");
@@ -280,6 +303,14 @@ function drawXPHero(points, color) {
       dot.setAttribute("r", baseR);
       dot.setAttribute("opacity", isLast ? "1" : "0.55");
       hideTooltip();
+    });
+    hit.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openTooltip(
+        e, hit, tooltipHtml,
+        () => { dot.setAttribute("r", baseR + 2); dot.setAttribute("opacity", "1"); },
+        () => { dot.setAttribute("r", baseR); dot.setAttribute("opacity", isLast ? "1" : "0.55"); }
+      );
     });
     svg.appendChild(hit);
   });
@@ -325,46 +356,52 @@ export async function loadProjectProgress(source) {
   }
 }
 
-export async function loadModuleProjects(tbody) {
-  const query = `
-    {
-      user {
-        id
-        login
-      }
-      group(order_by: { createdAt: desc }) {
-        id
-        path
-        status
-        captainId
-        object {
-          name
+export async function loadModuleProjects(tbody, preloadedGroups, preloadedUser, xpByPath) {
+  let groupList = preloadedGroups;
+  let myId = preloadedUser ? preloadedUser.id : null;
+
+  if (!groupList) {
+    const query = `
+      {
+        user {
+          id
+          login
         }
-        members {
-          userId
-          userLogin
+        group(order_by: { createdAt: desc }) {
+          id
+          path
+          status
+          captainId
+          object {
+            name
+          }
+          members {
+            userId
+            userLogin
+          }
         }
       }
+    `;
+
+    let data;
+    try {
+      data = await graphqlQuery(query);
+    } catch (e) {
+      tbody.innerHTML = '<div class="project-progress-empty">// unable to reach group feed</div>';
+      setPpPaginationVisible(false);
+      return;
     }
-  `;
 
-  let data;
-  try {
-    data = await graphqlQuery(query);
-  } catch (e) {
-    tbody.innerHTML = '<div class="project-progress-empty">// unable to reach group feed</div>';
-    setPpPaginationVisible(false);
-    return;
+    const me = (data.user || [])[0];
+    myId = me ? me.id : null;
+    groupList = data.group || [];
   }
-
-  const me = (data.user || [])[0];
-  const myId = me ? me.id : null;
 
   
   
   const piscineSources = Object.keys(SOURCE_LABELS).filter(s => s !== "module");
   const piscinePatterns = piscineSources.flatMap(s => SOURCE_PATTERNS[s] || [s]);
-  ppGroups = (data.group || []).filter(g => {
+  ppGroups = groupList.filter(g => {
     if (!(g.members || []).some(m => m.userId === myId)) return false;
     const path = g.path || "";
     return !piscinePatterns.some(p => path.includes(p));
@@ -378,7 +415,12 @@ export async function loadModuleProjects(tbody) {
     return;
   }
 
-  await attachProjectXP(ppGroups);
+  if (xpByPath) {
+    
+    ppGroups.forEach(g => { g.__xp = xpByPath[g.path] || 0; });
+  } else {
+    await attachProjectXP(ppGroups);
+  }
 
   bindPpPaginationControls();
   renderProjectProgressPage();
@@ -593,19 +635,22 @@ function buildProjectProgressRow(g) {
   return row;
 }
 
-export async function loadSkillsChart() {
-  const query = `
-    {
-      transaction(where: { type: { _ilike: "skill_%" } }) {
-        type
-        amount
+export async function loadSkillsChart(preloadedTx) {
+  let tx = preloadedTx;
+  if (!tx) {
+    const query = `
+      {
+        transaction(where: { type: { _ilike: "skill_%" } }) {
+          type
+          amount
+        }
       }
-    }
-  `;
-
-  const data = await graphqlQuery(query);
+    `;
+    const data = await graphqlQuery(query);
+    tx = data.transaction;
+  }
   const maxByType = {};
-  data.transaction.forEach(t => {
+  tx.forEach(t => {
     const name = t.type.replace("skill_", "");
     
     maxByType[name] = Math.max(maxByType[name] || 0, t.amount);
@@ -673,7 +718,7 @@ function drawHexRadar(skills) {
     
     const hit = svgEl("circle", {
       cx: x, cy: y, r: 11, fill: "transparent", style: "cursor: pointer;",
-      class: "skill-hit",
+      class: "skill-hit chart-hit",
       "data-tt-title": escapeHtml(s.label),
       "data-tt-value": `${s.value}%`,
     });
@@ -709,26 +754,42 @@ function bindSkillHoverDelegation() {
     if (dot) dot.setAttribute("r", 5);
     hideTooltip();
   });
+
+  document.addEventListener("click", (e) => {
+    const hit = e.target.closest && e.target.closest(".skill-hit");
+    if (!hit) return;
+    e.stopPropagation();
+    const dot = hit.previousElementSibling;
+    openTooltip(
+      e, hit,
+      `<div class="tt-title">${hit.getAttribute("data-tt-title")}</div><div class="tt-sub">${hit.getAttribute("data-tt-value")}</div>`,
+      () => { if (dot) dot.setAttribute("r", 7); },
+      () => { if (dot) dot.setAttribute("r", 5); }
+    );
+  });
 }
 
 
-export async function loadPassFailChart() {
-  const query = `
-    {
-      result(
-        where: { ${MODULE_ONLY_FILTER}, object: { type: { _eq: "project" } } }
-        order_by: { createdAt: desc }
-      ) {
-        objectId
-        grade
+export async function loadPassFailChart(preloadedResults) {
+  let results = preloadedResults;
+  if (!results) {
+    const query = `
+      {
+        result(
+          where: { ${MODULE_ONLY_FILTER}, object: { type: { _eq: "project" } } }
+          order_by: { createdAt: desc }
+        ) {
+          objectId
+          grade
+        }
       }
-    }
-  `;
-
-  const data = await graphqlQuery(query);
+    `;
+    const data = await graphqlQuery(query);
+    results = data.result;
+  }
 
   const latestByProject = new Map();
-  data.result.forEach(r => {
+  results.forEach(r => {
     if (!latestByProject.has(r.objectId)) latestByProject.set(r.objectId, r.grade);
   });
 
@@ -806,12 +867,14 @@ function drawStatusRing(pass, fail) {
   });
 }
 
-export async function loadAuditGauge() {
-  const query = `{ user { auditRatio totalUp totalDown } }`;
-
-  const data = await graphqlQuery(query);
-  const u = data.user[0];
-  const ratio = u.auditRatio ?? (u.totalDown ? u.totalUp / u.totalDown : 0);
+export async function loadAuditGauge(preloadedRatio) {
+  let ratio = preloadedRatio;
+  if (ratio === undefined) {
+    const query = `{ user { auditRatio totalUp totalDown } }`;
+    const data = await graphqlQuery(query);
+    const u = data.user[0];
+    ratio = u.auditRatio ?? (u.totalDown ? u.totalUp / u.totalDown : 0);
+  }
 
   drawAuditGauge(ratio);
 }
@@ -877,27 +940,32 @@ export async function loadSourceXPStat(source) {
 }
 
 
-export async function loadBestSkill() {
-  const query = `
-    {
-      transaction(
-        where: { type: { _ilike: "skill_%" } }
-        order_by: { amount: desc }
-        limit: 1
-      ) {
-        type
-        amount
+export async function loadBestSkill(preloadedTx) {
+  let best;
+  if (preloadedTx) {
+    best = [...preloadedTx].sort((a, b) => b.amount - a.amount)[0];
+  } else {
+    const query = `
+      {
+        transaction(
+          where: { type: { _ilike: "skill_%" } }
+          order_by: { amount: desc }
+          limit: 1
+        ) {
+          type
+          amount
+        }
       }
-    }
-  `;
-  const data = await graphqlQuery(query);
-  if (data.transaction[0]) {
-    const t = data.transaction[0];
-    document.getElementById("stat-best-skill").textContent = t.type.replace("skill_", "");
+    `;
+    const data = await graphqlQuery(query);
+    best = data.transaction[0];
+  }
+  if (best) {
+    document.getElementById("stat-best-skill").textContent = best.type.replace("skill_", "");
     
     
     const outlineEl = document.getElementById("stat-best-skill-outline");
-    if (outlineEl) outlineEl.textContent = `${t.amount}/100`;
+    if (outlineEl) outlineEl.textContent = `${best.amount}/100`;
   }
 }
 
@@ -978,6 +1046,92 @@ function typeLine(el, text, done) {
       done && done();
     }
   })();
+}
+
+
+
+export async function loadDashboardModule() {
+  const query = `
+    {
+      me: user {
+        id
+        login
+        auditRatio
+        totalUp
+        totalDown
+      }
+      xpAgg: transaction_aggregate(
+        where: { type: { _eq: "xp" }, ${MODULE_XP_FILTER} }
+      ) {
+        aggregate { sum { amount } }
+      }
+      xpTimeline: transaction(
+        where: { type: { _eq: "xp" }, ${MODULE_XP_FILTER} }
+        order_by: { createdAt: asc }
+      ) {
+        amount
+        createdAt
+        path
+        object { name type }
+      }
+      skillTx: transaction(where: { type: { _ilike: "skill_%" } }) {
+        type
+        amount
+      }
+      results: result(
+        where: { ${MODULE_ONLY_FILTER}, object: { type: { _eq: "project" } } }
+        order_by: { createdAt: desc }
+      ) {
+        objectId
+        grade
+      }
+      groups: group(order_by: { createdAt: desc }) {
+        id
+        path
+        status
+        captainId
+        object { name }
+        members { userId userLogin }
+      }
+    }
+  `;
+
+  const data = await graphqlQuery(query);
+  const me = data.me[0];
+
+  
+  renderProfile({ user: data.me, xpAgg: data.xpAgg });
+
+  
+  const ratio = me.auditRatio ?? (me.totalDown ? me.totalUp / me.totalDown : 0);
+  drawAuditGauge(ratio);
+
+  
+  await loadPassFailChart(data.results);
+
+  
+  await loadSkillsChart(data.skillTx);
+  await loadBestSkill(data.skillTx);
+
+  
+  await loadXPOverTimeChart("module", data.xpTimeline);
+
+  
+  const recentUplink = [...data.xpTimeline]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 19);
+  renderUplinkLog(recentUplink, ++uplinkGen);
+
+  
+  const xpByPath = {};
+  data.xpTimeline.forEach(t => {
+    xpByPath[t.path] = (xpByPath[t.path] || 0) + t.amount;
+  });
+  const tbody = document.getElementById("projectProgress");
+  if (tbody) {
+    ppSource = "module";
+    await loadModuleProjects(tbody, data.groups, me, xpByPath);
+  }
 }
 
 

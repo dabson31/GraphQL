@@ -1858,19 +1858,6 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   transition: opacity 0.18s cubic-bezier(0.22, 1, 0.36, 1),
               transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
   white-space: nowrap;
-  max-width: calc(100vw - 32px);
-  box-sizing: border-box;
-}
-
-@media (max-width: 600px) {
-  .chart-tooltip {
-    white-space: normal;
-    font-size: 12px;
-    padding: 9px 12px;
-    max-width: calc(100vw - 24px);
-  }
-  .chart-tooltip .tt-title { font-size: 13px; }
-  .chart-tooltip .tt-sub { font-size: 11px; }
 }
 
 .chart-tooltip.is-visible { opacity: 1; transform: translateY(0) scale(1); }

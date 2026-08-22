@@ -85,7 +85,7 @@ const query = `
 }
 
 
-function renderProfile(data) {
+export function renderProfile(data) {
     const user = data.user[0]
     const rawXP = data.xpAgg.aggregate.sum.amount || 0;
 

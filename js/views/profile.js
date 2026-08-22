@@ -3,16 +3,13 @@ import { runBootSequence } from "../boot.js";
 import { initTerminalEasterEgg } from "../terminal.js";
 import {
   clearProfileTarget,
-  loadProfile,
 } from "../profile.js";
 import {
-  loadPassFailChart,
-  loadSkillsChart,
-  loadAuditGauge,
   loadUplinkLog,
   loadXPOverTimeChart,
   loadSourceXPStat,
   loadProjectProgress,
+  loadDashboardModule,
 } from "../charts.js";
 
 const SOURCE_LABELS = {
@@ -361,13 +358,9 @@ export default function ProfileView() {
     runBootSequence();
     initTerminalEasterEgg();
     clearProfileTarget();
-    loadProfile();
-    loadPassFailChart(); 
-    loadSkillsChart();
-    loadAuditGauge();
-    loadUplinkLog("module");
-    loadXPOverTimeChart("module");
-    loadProjectProgress();
+    
+    
+    loadDashboardModule();
   };
 
   return wrapper;
