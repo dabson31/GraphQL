@@ -35,10 +35,23 @@ function ensureTooltip() {
 }
 function positionTooltip(el, evt) {
   const pad = 16;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const rect = el.getBoundingClientRect();
+  const w = rect.width || el.offsetWidth || 240;
+  const h = rect.height || el.offsetHeight || 60;
+
   let left = evt.clientX + pad;
   let top = evt.clientY + pad;
-  if (left > window.innerWidth - 260) left = evt.clientX - pad - 240;
-  if (top > window.innerHeight - 80) top = evt.clientY - pad - 60;
+
+  if (left + w > vw - pad) left = evt.clientX - pad - w;
+  if (left < pad) left = pad;
+  if (left + w > vw - pad) left = Math.max(pad, vw - pad - w);
+
+  if (top + h > vh - pad) top = evt.clientY - pad - h;
+  if (top < pad) top = pad;
+  if (top + h > vh - pad) top = Math.max(pad, vh - pad - h);
+
   el.style.left = left + "px";
   el.style.top = top + "px";
 }
