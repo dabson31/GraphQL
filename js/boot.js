@@ -1,3 +1,14 @@
+
+/**
+ * exported entry point, called on page load to conditionally show the boot anim
+ * exits if #bootOverlay or #bootLines are missing, then checks "prefers-reduced-motion"
+ * and a sessionStorage flag "blackwall_just_logged_in" (set by login.transitions.js right
+ * before redirecting). If motion is reduced or the flag isn't set meaning its not a fresh login,
+ * it just removes the overlay and stops. No animation plays on normal page refreshes. Else if it
+ * is a fresh login, uses the bootLines and displays them, then shows the crack line using the
+ * crack_points coords as the  final piece of transition. 
+ * @returns undefined (DOM animation only)
+ */
 export function runBootSequence() {
   const overlay = document.getElementById("bootOverlay");
   const linesEl = document.getElementById("bootLines");
@@ -36,10 +47,14 @@ export function runBootSequence() {
 
   const SVG_NS = "http://www.w3.org/2000/svg";
 
+
+  // converst an array of x and y points to css (clip-path: polygon(...)), making each value into a percentage
   function polygonStr(points) {
     return points.map((p) => (p[0] * 100) + "% " + (p[1] * 100) + "%").join(", ");
   }
 
+
+  // both left and right define the movement for the left/right turns of the crack
   function leftPolygon() {
     return polygonStr([[0, 0], ...CRACK_POINTS, [0, 1]]);
   }
@@ -49,7 +64,14 @@ export function runBootSequence() {
   }
 
   
-  
+
+
+  /**
+   * dynamically creates an SVG element sized to the viewport, draws a path throw the CRACK_POINTS (which is
+   * scaled to pixel coords instead of percentages) and sets up stroke-dasharray/stroke-dashoffset so the crack
+   * line is animated as if being drawn. 
+   * @returns { svg, path }
+   */
   function buildCrackSvg() {
     const w = window.innerWidth;
     const h = window.innerHeight;
@@ -75,7 +97,13 @@ export function runBootSequence() {
   }
 
   
-  
+  /**
+   * the closing animation. its the splitting screen right after the crack_points being drawn.
+   * it builds two divs (split-left, split-right) clipped with left/right polygons to simulate
+   * the screen splitting apart, removing the original overlay (blackscreen), and triggers the split-open
+   * animation class then finally cleans up both the split wrapper and the crack SVG after the animation
+   * (700ms)
+   */
   function shatterOverlay() {
     const { svg: crack, path: crackPath } = buildCrackSvg();
     document.body.appendChild(crack);
@@ -117,6 +145,8 @@ export function runBootSequence() {
   }
 
   let i = 0;
+
+  // recuresively types out each line of bootLines char by char, then after all are shown it clears them and calls shatterOverlay
   function nextLine() {
     if (i >= bootLines.length) {
       setTimeout(() => {

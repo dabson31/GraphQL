@@ -12,8 +12,8 @@ const GRAPHQL_URL = `https://learn.reboot01.com/api/graphql-engine/v1/graphql`;
  * response has GraphQL errors, it logs the errors, calls logout() if 
  * one of them contains jwt (in case its expired/invalid), and throws an
  * Error with the first error message
- * @param {*} query (string) : the raw GraphQL query string to send
- * @param {*} variables (object {}) : vars to inject to the query
+ * @param {string} query  : the raw GraphQL query string to send
+ * @param {object {} } variables  : vars to inject to the query
  * @returns the data field of parsed JSON responses (which is an object that contains the request GraphQL fields). 
  */
 
