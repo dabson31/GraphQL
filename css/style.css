@@ -26,21 +26,33 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: var(--void);
   color: var(--ice);
   font-family: var(--font-display);
   overflow-x: hidden;
 }
 
-
-.view {
-  display: none;
-}
-.view.is-active {
-  display: block;
+html {
+  background: var(--void);
 }
 
+body {
+  background: transparent;
+}
 
+html::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url('../assets/background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  opacity: 0.25;
+  filter: saturate(0.8) brightness(0.7);
+}
 
 body {
   background-image:
@@ -1105,7 +1117,8 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   position: fixed;
   inset: 0;
   z-index: 5000;
-  background: var(--void);
+  background: rgba(5, 2, 3, 0.55);
+  backdrop-filter: blur(2px);
   padding: 28px 24px;
   cursor: pointer;
   transition: opacity 0.45s ease;

@@ -1,7 +1,7 @@
 const HOVER_SOUND_URL = "assets/hover.mp3";
 const BACKGROUND_NOISE_URL = "assets/background.mp3";
 const HOVER_SOUND_VOLUME = 0.5;
-const BACKGROUND_NOISE_VOLUME = 0.4;
+const BACKGROUND_NOISE_VOLUME = 0.3;
 const HOVER_TARGET_SELECTOR = "button, a, .source-btn, .identity-box, .logout-btn, .back-link, [data-magnify]";
 
 

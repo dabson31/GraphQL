@@ -1109,7 +1109,7 @@ function renderUplinkLog(entries, gen) {
   const lines = entries.map(t => {
     const time = new Date(t.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     let label = (t.object && t.object.name) ? t.object.name : (t.path || "unknown").split("/").pop();
-    if (label.length > 17) label = label.slice(0, 17) + "...";
+    if (label.length > 14) label = label.slice(0, 17) + "...";
     return `[${time}] +${t.amount.toLocaleString()} XP :: ${label}`;
   });
 
@@ -1216,7 +1216,7 @@ export async function loadDashboardModule() {
   
   const recentUplink = [...data.xpTimeline]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 19);
+    .slice(0, 17);
   renderUplinkLog(recentUplink, ++uplinkGen);
 
   
