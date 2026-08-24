@@ -11,6 +11,12 @@ const ORANGE = "#ff8c1a";
 const FAIL_COL = "#4a4a52";
 const GRID = "rgba(255,0,60,0.18)";
 
+/**
+ * its just a generic svg element factory
+ * @param {string} tag (svg tag name)
+ * @param {object} attrs (object, attribute, name > value map)
+ * @returns created SVG element
+ */
 
 function svgEl(tag, attrs = {}) {
   const el = document.createElementNS(NS, tag);
@@ -18,13 +24,26 @@ function svgEl(tag, attrs = {}) {
   return el;
 }
 
+/**
+ * helper for inserting text into innerHTML, it replaces chars with their
+ * html equivalent
+ * @param {any} str (to string)
+ * @returns the replaced string
+ */
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (c) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
   }[c]));
 }
 
-
+/**
+ * all the tooltip functions considered one small shared tooltip system used by 
+ * multiple charts. (it is the hovering for extra information on the graphs)
+ * firstly ensureTooltip() lazily creates a floating .chart-tooltip
+ * div appended to <body>. then positionTooltip() positions it near the cursor while
+ * keeping it inside the viewport. After that showTooltip() sets its HTML content and shows
+ * it. Then, moveTooltip() repositions it during mousemove. And lastly hideTooltip() hides it.
+ */
 let tooltipEl = null;
 function ensureTooltip() {
   if (tooltipEl) return tooltipEl;
@@ -107,11 +126,16 @@ const SOURCE_COLORS = {
 };
 
 
+/**
+ * the alias resolver for xp sources filters, it maps
+ * the legacy values piscine to piscine-go, and passes
+ * everything else unchanged
+ * @param {string} source 
+ * @returns normalized string
+ */
 function normalizeSource(source) {
   return source === "piscine" ? "piscine-go" : source;
 }
-
-
 
 const SOURCE_LABELS = {
   "module":       "Module",
@@ -121,6 +145,16 @@ const SOURCE_LABELS = {
   "piscine-rust": "Piscine Rust",
 };
 
+
+/**
+ * the graphql where-clause builder for filtering transactions by
+ * the exp sources. for module, it returns a pre defined MODULE_XP_FILTER which
+ * is imported from profile.js. For other sources, it builds an _or clause matching
+ * any of the SOURCE_PATTERNS[source] against the transaction path via _ilike. there
+ * is a special case of piscine-js to exclude the flat 70000 xp as thats for the module
+ * @param {string} source (normalized source key) 
+ * @returns raw GraphQL where clause string to add into a query
+ */
 function buildPathClause(source) {
   source = normalizeSource(source);
   if (source === "module") return MODULE_XP_FILTER;
@@ -132,7 +166,17 @@ function buildPathClause(source) {
   return `_or: [${or}]`;
 }
 
-
+/**
+ * this is a data loader for the main xp over time chart
+ * it normalizes the source, if preloadedTx is supplied, uses it directly and 
+ * skips the network call instantly (no need to refetch), else queries all 
+ * xp-type transactions for that source ordered by creation date. then computes a running
+ * cumulative total rawTotal for each transaction, derives a display label per point (object name,
+ * last path segment), then calls drawXpHero() so it renders it with a color
+ * depending on the source
+ * @param {string} source // module, piscine-js, piscine-rust
+ * @param {array} preloadedTx optional (already fetched array of objeects, passed in loadDashboardModule() so it doesnt refetch) 
+ */
 export async function loadXPOverTimeChart(source, preloadedTx) {
   source = normalizeSource(source || "module");
 
@@ -173,6 +217,21 @@ export async function loadXPOverTimeChart(source, preloadedTx) {
 let lastHeroPoints = null;
 let lastHeroColor = null;
 
+/**
+ * SVG renderer for cumulative xp line chart
+ * it clears and resizes #xpChart SVG to its rendered bounding box. If less than 2 points, it
+ * shows a "no signal" placeholder message. else, computes scale x and scale y functions mapping
+ * data to pixel coords, draws horizontal gridlines with xp labels, draws a gradient-filled area
+ * and glowing polyline for cumulative xp curve, groups points by calendar day and draws a dot 
+ * per day its completed on (larger glowing for the most recent one), then attaches invisible hit-circles
+ * (its tagged .chart-hit for tap detection) with both hover(mouseenter mousemove mouseleave) and clicks 
+ * handlers that show a tooltip listing all xp entries for that day. clicking anywhere else on the page
+ * closes the tooltip. Finally, it draws a large numeric "current total XP" readout in the top right of
+ * the graph. (its responsive)
+ * @param {array} points 
+ * @param {string} color (hex color, default is red) 
+ * @returns undefined (just renders directly into #xpChart svg element)
+ */
 function drawXPHero(points, color) {
   color = color || RED;
   const svg = document.getElementById("xpChart");
@@ -343,6 +402,15 @@ const PP_STATUS_MAP = {
   audit: { label: "Auditing", cls: "status-audit" },
 };
 
+
+/**
+ * project progress table manager depending on source selected
+ * it remembers the current source in ppSource, if its module, it changes to 
+ * loadModuleProjects(tbody) to represents module, else, it changes to
+ * loadPiscineCamps(tbody, source) to represent the selected piscine source
+ * @param {string} source optional, the default is the last used ppSource or module 
+ */
+
 export async function loadProjectProgress(source) {
   const tbody = document.getElementById("projectProgress");
   if (!tbody) return;
@@ -356,6 +424,20 @@ export async function loadProjectProgress(source) {
   }
 }
 
+/**
+ * data loader for module-track projects. lists the projects participated in in module
+ * if preloadedGroups (means preloadedUser too) is supplied, uses it directly to skip network call.
+ * if not, it queries the current user plus all group records of team projects with member lists, then
+ * filters to only groups the current user belongs to and that aren't piscine-related by checking the group
+ * path), tags each one with __myId/__xp/__type, shows an empty-state message if none found. For xp totals per
+ * group, if an xpByPath is supplied, reads each group's total directly from it (no extra fetch); otherwise 
+ * falls back to fetching totals via attachProjectXP(). finally binds controls and renders the current page
+ * @param {HTMLElement} tbody the container to render into/show error states in 
+ * @param {array} preloadedGroups optional (fetched array of group records) 
+ * @param {object} preloadedUser optional (current user record, used for .id)
+ * @param {object} xpByPath optional (a map of path > total XP, its used to skip the 
+ * separate attachProjectXp() fetch, built by loadDashboardModule() from its own xp timeline data) 
+ */
 export async function loadModuleProjects(tbody, preloadedGroups, preloadedUser, xpByPath) {
   let groupList = preloadedGroups;
   let myId = preloadedUser ? preloadedUser.id : null;
@@ -428,7 +510,16 @@ export async function loadModuleProjects(tbody, preloadedGroups, preloadedUser, 
 
 
 
-
+/**
+ * data loader for piscine camp xp breakdown, used for piscines only no module
+ * queries all xp-type transactions matching the source's path filter, groups 
+ * them by  path into camps which accumalates the xp and the first/last timestamp
+ * per unique path via campKeyForPath(), sorts camps by most recent, builds ppGroups entries tagged
+ * __type:"camp", then renders the page or shows error states
+ * @param {HTMLElement} tbody 
+ * @param {string} source piscine sourcekey
+ * @returns 
+ */
 export async function loadPiscineCamps(tbody, source) {
   const query = `
     {
@@ -484,7 +575,13 @@ export async function loadPiscineCamps(tbody, source) {
 
 
 
-
+/**
+ * this just returns the path as it is, it was gonna be used to group
+ * paths under on label but i scraped that,(like week1,week2 instead of week1 exercise 1)
+ * @param {string} path 
+ * @param {array} patterns not used 
+ * @returns 
+ */
 function campKeyForPath(path, patterns) {
   return path;
 }

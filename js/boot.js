@@ -69,7 +69,7 @@ export function runBootSequence() {
   /**
    * dynamically creates an SVG element sized to the viewport, draws a path throw the CRACK_POINTS (which is
    * scaled to pixel coords instead of percentages) and sets up stroke-dasharray/stroke-dashoffset so the crack
-   * line is animated as if being drawn. 
+   * line is animated as if being drawn. (basically builds the path)
    * @returns { svg, path }
    */
   function buildCrackSvg() {
@@ -98,8 +98,8 @@ export function runBootSequence() {
 
   
   /**
-   * the closing animation. its the splitting screen right after the crack_points being drawn.
-   * it builds two divs (split-left, split-right) clipped with left/right polygons to simulate
+   * the closing animation. draws the crack lines and then triggers the splitting screen right after the crack_points
+   * being drawn. it builds two divs (split-left, split-right) clipped with left/right polygons to simulate
    * the screen splitting apart, removing the original overlay (blackscreen), and triggers the split-open
    * animation class then finally cleans up both the split wrapper and the crack SVG after the animation
    * (700ms)

@@ -3,7 +3,6 @@
   const BUFFER_SIZE = 7;
   const TIME_LIMIT = 67;
 
-
   const REDIRECT_URL = "https://youtu.be/QDia3e12czc?si=8SgnXuTJK3PynwJ4";
 
   const DAEMONS = [
@@ -39,17 +38,35 @@
 
   let els = {};
 
+  // randomize helper
   function rand(n) {
     return Math.floor(Math.random() * n);
   }
 
+  /**
+   * this turns the grid coordinates into a unique string key
+   * it concats row and columns with a comma and returns them
+   * @param {int} r 
+   * @param {int} c 
+   * @returns {string} "r,c" (like "2,3")
+   */
   function keyOf(r, c) {
     return r + "," + c;
   }
 
   
   
-  
+  /**
+   * this is the grid generation helper that plants daemon's required hex code sequence
+   * into the grid, with a valid connecting zig-zag method path. it loops up to 60 times
+   * to build a path starting on row 0, alternating between choosing a random row (when moving
+   * in the column) and a random column (when moving in a row), matching the logic of
+   * the game's minigame. if the path revists a cell or has conflict with hex codes already
+   * placed by a previous daemon's sequence, it rejects them automatically. On success, it writes
+   * the sequence's codes into the shared grid array along that path
+   * @param {Array<string>} codes (hex codes like 55, 1C etc)
+   * @returns {boolean} true if valid placements were found and written, false if it failed after 60 loops/attempts)
+   */
   function embedSequence(codes) {
     for (let attempt = 0; attempt < 60; attempt++) {
       const path = [];
@@ -101,6 +118,12 @@
     return false;
   }
 
+  /**
+   * this initializes the grid, it basically creates an empty grid, calls
+   * embedSequence() for every daemon to check for validity and fills
+   * every empty cell with a random code from code_pool randomly afterwards.
+   * @returns undefined (just prepares the grid array)
+   */
   function buildGrid() {
     grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(null));
     DAEMONS.forEach((d) => embedSequence(d.codes));
@@ -110,6 +133,15 @@
       }
     }
   }
+
+  /**
+   * this function computes which grid cells the player is allowed to choose
+   * currently, based on the selection rule of the game. if nothing is selected, only
+   * the first row cells (row 0 cells) are selectable, else, dependings on the
+   * constraintAxis (row/col), only the cells in the current constrained row or column
+   * that have not been used yet are selectable.
+   * @returns {array [row, col]} (representing all selectable cells)
+   */
 
   function selectableCells() {
     const cells = [];
@@ -128,6 +160,12 @@
     return cells;
   }
 
+  /**
+   * DOM renderer for the grid, it rebuilds the els.grid's content and creates
+   * one button per cell, applying the CSS classes based on if its used or not,
+   * if its selectable or if its locked. Disabling non-selectable or used or
+   * game-over cells and wires each button's click to "pickCell(r, c)"
+   */
   function renderGrid() {
     const selectable = new Set(selectableCells().map(([r, c]) => keyOf(r, c)));
     els.grid.innerHTML = "";
@@ -148,6 +186,12 @@
     }
   }
 
+  /**
+   * DOM renderer for the buffer (showing a row of selected codes so far)
+   * it rebuilds the els.buffer with BUFFER_SIZE slots, filling the codes that
+   * are already in the buffer, and enables/disables the stop button based on whether
+   * the game has started or not (if anything has been picked)
+   */
   function renderBuffer() {
     els.buffer.innerHTML = "";
     for (let i = 0; i < BUFFER_SIZE; i++) {
@@ -166,10 +210,23 @@
     return buffer.map((b) => b.code);
   }
 
+  /**
+   * this checks whether the needle array appears as a "contiguous" run
+   * inside the haysack (basically checks if the player's buffer contains
+   * the daemon's full code sequence in order) it stores all the inputs,
+   * uses a nested loop to check if any 2/3 consequetive numbers match
+   * any of the breachs, and returns true for the respective one in that
+   * case
+   * @param {Array<string>} haystack 
+   * @param {Array<string>} needle 
+   * @returns true | false
+   */
   function containsContiguous(haystack, needle) {
     for (let i = 0; i <= haystack.length - needle.length; i++) {
       let match = true;
       for (let j = 0; j < needle.length; j++) {
+        // console.log(haystack[i + j] + "THIS IS HAYSTACK")
+        // console.log(needle[j] + " THIS IS NEEDLE")
         if (haystack[i + j] !== needle[j]) {
           match = false;
           break;
@@ -180,6 +237,14 @@
     return false;
   }
 
+  /**
+   * DOM renderer and a solve-checker for the daemon objectives
+   * for each daemon in daemons, it checks with containsCongtiguous() if
+   * the code sequence now appears in the buffer and marks it solved if it
+   * is (explained in containsContiguous), it then rebuilds the sequence list
+   * UI, showing each daemon's codes, name, description and a checkmark indicating
+   * its solved if it is 
+   */
   function renderSequences() {
     els.sequences.innerHTML = "";
     const codes = bufferCodes();
@@ -198,6 +263,17 @@
     });
   }
 
+  /**
+   * click handler for selecting a grid cell
+   * it validates whether the cell is selectable or not, checking
+   * if its used. It pushes it onto buffer, marks it as used and
+   * updates the alternating constraints per the game rules, then
+   * re-renders the grid, the buffer and the sequence. It ends the
+   * game if the buffer is full, or no more cells are selectable
+   * @param {int} r 
+   * @param {int} c 
+   * @returns undefined
+   */
   function pickCell(r, c) {
     if (gameOver) return;
     const k = keyOf(r, c);
@@ -230,12 +306,27 @@
     }
   }
 
+  /**
+   * timer
+   * it just decrements the timeLeft by .1s, updates the timer display and
+   * ends the game if the time reaches 0.
+   */
   function tick() {
     timeLeft = Math.max(0, timeLeft - 0.1);
     els.timer.textContent = timeLeft.toFixed(2);
     if (timeLeft <= 0) endGame();
   }
 
+  /**
+   * ends the game when called
+   * it stops the timer, re-renders the grid to lock all cells and
+   * determines a win or a loss, its considered a win if at least
+   * one daemon is solved with some time remaining. it updates
+   * the result panel text/classes accordingly and if the third
+   * and hardest daemon was solved (ice_breaker), it dispatches
+   * the breach:unlocked custom evvent and rewires the access button 
+   * to link to a rickroll  
+   */
   function endGame() {
     if (gameOver) return;
     gameOver = true;
@@ -288,21 +379,31 @@
     timerHandle = setInterval(tick, 100);
   }
 
+  /**
+   * sets up the DOM references and game state, then starts the minigame
+   * it basically finds #breachProtocol in the DOM, and caches references
+   * to all the sub-elements (the grids, buffer, timer, result etc)
+   * into the els object, then binds the retry and stop buttons, and
+   * lastly calls resetGame() for a fresh start. exits if no breachProtocol
+   * exists in the DOM
+   * @returns undefined
+   */
+
   function init() {
     const root = document.getElementById("breachProtocol");
     if (!root) return;
     els = {
       root,
-      grid: root.querySelector("#breachGrid"),
-      buffer: root.querySelector("#breachBuffer"),
-      sequences: root.querySelector("#breachSequences"),
-      timer: root.querySelector("#breachTimer"),
-      result: root.querySelector("#breachResult"),
-      resultTitle: root.querySelector("#breachResultTitle"),
-      resultBody: root.querySelector("#breachResultBody"),
-      retry: root.querySelector("#breachRetry"),
-      stop: root.querySelector("#breachStop"),
-      accessBtn: document.getElementById("breachAccessBtn"),
+      grid: root.querySelector("#breachGrid"), // grid
+      buffer: root.querySelector("#breachBuffer"), // chosen daemons
+      sequences: root.querySelector("#breachSequences"), // req sequences
+      timer: root.querySelector("#breachTimer"), // timer
+      result: root.querySelector("#breachResult"), // end result
+      resultTitle: root.querySelector("#breachResultTitle"), // end title
+      resultBody: root.querySelector("#breachResultBody"), // end body
+      retry: root.querySelector("#breachRetry"), // end retry
+      stop: root.querySelector("#breachStop"), // stop button
+      accessBtn: document.getElementById("breachAccessBtn"), // win access
     };
     els.retry.addEventListener("click", resetGame);
     if (els.stop) els.stop.addEventListener("click", () => endGame());
@@ -311,8 +412,11 @@
 
   
   
-  
-  
+  /**
+   * this is the hacking minigame, not a requirement but i still
+   * wanted to do it as an easter egg, this is the entry point
+   * for the entre minigame, it initializes it using init()
+   */
   export function startBreachProtocol() {
     init();
   }
