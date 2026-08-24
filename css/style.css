@@ -2634,8 +2634,6 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
   white-space: pre-wrap;
 }
 
-.bw-terminal-line { }
-
 .bw-terminal-echo { color: var(--ice); }
 .bw-terminal-error { color: var(--red); }
 .bw-terminal-cryptic { color: var(--flag); }

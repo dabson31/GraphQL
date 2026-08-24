@@ -14,8 +14,8 @@ const RANKS = [
   { min: 0,        title: "Chrome Rookie",     desc: "fresh jack, still smells like the ripperdoc's chair" },
   { min: 10000,     title: "Edgerunner",        desc: "running gigs, building a rep on the street" },
   { min: 50000,    title: "Solo",              desc: "contracts get done, no questions asked" },
-  { min: 150000,    title: "Fixer",             desc: "knows people who know people" },
-  { min: 400000,    title: "Netwatch Ghost",    desc: "moves through the net like it isn't even there" },
+  { min: 150000,    title: "Fixer",             desc: "knows people who know people... who know people" },
+  { min: 400000,    title: "Netwatch Ghost",    desc: "moves through the net like a ghost, untraceable" },
   { min: 800000,   title: "Blackwall Breaker", desc: "the kind of legend corpo suits tell rookies about" },
 ];
 

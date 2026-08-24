@@ -576,6 +576,7 @@ export async function loadPiscineCamps(tbody, source) {
 
 
 /**
+ * NO LONGER USEFUL
  * this just returns the path as it is, it was gonna be used to group
  * paths under on label but i scraped that,(like week1,week2 instead of week1 exercise 1)
  * @param {string} path 
@@ -586,6 +587,14 @@ function campKeyForPath(path, patterns) {
   return path;
 }
 
+/**
+ * this is a XP-Lookup helper for module project groups
+ * it collects all group paths, queries total XP transactions while matching any
+ * of those paths in one request, then sums the xp per path and writes each group's total
+ * into g.__xp
+ * @param {array} groups 
+ * @returns 
+ */
 async function attachProjectXP(groups) {
   const paths = groups.map(g => g.path).filter(Boolean);
   if (!paths.length) return;
@@ -614,6 +623,10 @@ async function attachProjectXP(groups) {
   groups.forEach(g => { g.__xp = xpByPath[g.path] || 0; });
 }
 
+/**
+ * shows/hides project progress pagination
+ * @param {bool} visible 
+ */
 function setPpPaginationVisible(visible) {
   const pag = document.getElementById("projectProgressPagination");
   if (pag) pag.style.display = visible ? "" : "none";
@@ -621,6 +634,11 @@ function setPpPaginationVisible(visible) {
 
 let ppPrevBoundEl = null;
 let ppNextBoundEl = null;
+/**
+ * bingers for previous/next project progress pagination buttons
+ * it attaches click handlers to #ppPrevBtn and #ppNextBtn that decrement and increment ppPage(bounded)
+ * and rerender the page. It uses ppPrevBoundE1/ppNextBoundE1 to avoid double binding the dom element
+ */
 function bindPpPaginationControls() {
   const prevBtn = document.getElementById("ppPrevBtn");
   const nextBtn = document.getElementById("ppNextBtn");
@@ -642,6 +660,15 @@ function bindPpPaginationControls() {
   }
 }
 
+/**
+ * table renderer for ppGroups
+ * it computes total pages from ppGroups.length and PP_PAGE_SIZE, attachs pppage into range, slices
+ * out the current page's groups and rebuilds tbody with one row per group via buildProjectProgressRow(),
+ * then it updates visibility, page label text and button disabled states.
+ * it basically checks if there are more fields to be viewed after your current page, and computes the buttons
+ * below to how many pages should exist, as in if you reach the end point the next is disabled.
+ * @returns undefined
+ */
 function renderProjectProgressPage() {
   const tbody = document.getElementById("projectProgress");
   if (!tbody) return;
@@ -666,6 +693,15 @@ function renderProjectProgressPage() {
   if (nextBtn) nextBtn.disabled = ppPage >= totalPages - 1;
 }
 
+
+/**
+ * row builder for single project and camp entries
+ * it derives the display name, class (PP_STATUS_MAP is used for that), and determines the captain's
+ * login and whether the current user is the captain. Builds and returns a div.pp-row that contains
+ * the path,status,badge and total xp which shows if its received or not
+ * @param {object} g (a group or camp record (shape varies by __type ))
+ * @returns HTMLDivElement row
+ */
 function buildProjectProgressRow(g) {
   const isCamp = g.__type === "camp";
   const myId = g.__myId;
@@ -732,6 +768,12 @@ function buildProjectProgressRow(g) {
   return row;
 }
 
+/**
+ * data loader for the skills radar chart
+ * it queries all skill_%-type transactions if preloadedTx is not supplied, else it skips the network call. Then, it 
+ * computes the maximum recorded value per skill type, takes the top 5 by value and passes them to drawHexRadar()
+ * @param {array} preloadedTx optional 
+ */
 export async function loadSkillsChart(preloadedTx) {
   let tx = preloadedTx;
   if (!tx) {
@@ -760,6 +802,16 @@ export async function loadSkillsChart(preloadedTx) {
   drawHexRadar(skills);
 }
 
+/**
+ * SVG renderer for the pengtagon/hexagon-style skills radar chart
+ * it clears #skillsChart, if less than 3 skills are available, it shows a placeholder message
+ * saying insufficient skill telemetry. If there are more than 2, it computes point positions
+ * around a circle for each skill axis, draws the background rings and adds labels, then draws
+ * a filled polygon connecting the labeled skills' values, adds glowing dots per skill point and
+ * attaches inivisble hit-circle for hovering and clicking.
+ * @param {array} skills {label, value}
+ * @returns 
+ */
 function drawHexRadar(skills) {
   const svg = document.getElementById("skillsChart");
   svg.innerHTML = "";
@@ -828,6 +880,14 @@ function drawHexRadar(skills) {
 
 
 let skillHoverBound = false;
+/**
+ * this is a one time event delegation set up for radar-chart tooltips, it covers both
+ * hover and clicking/tapping. It uses a module level flag guard to bind document-level
+ * hovers/clicks (mouseover... click etc) listerns once, they use closest(".skill-hit") to detect
+ * interaction with any skills dot hit area, which enlarges the dot and shows the tooltip/popup
+ * accordingly. The click handler additionally calls stopPropagation() and uses openTooltip()
+ * so tapping a dot toggles its tooltip open/closed independent of the hover state.
+ */
 function bindSkillHoverDelegation() {
   if (skillHoverBound) return;
   skillHoverBound = true;
@@ -866,7 +926,13 @@ function bindSkillHoverDelegation() {
   });
 }
 
-
+/**
+ * data loader for pass/fail donut chart
+ * if preloaded exists, uses it and skips network, if not it queries all project result records
+ * for the current user and keeps only the most recent grade per project(objectId), tallies pass by checking
+ * if grade is greater than 0 vs fails, updates stat text elements and calls drawStatusRing() to render it
+ * @param {array} preloadedResults optional 
+ */
 export async function loadPassFailChart(preloadedResults) {
   let results = preloadedResults;
   if (!results) {
@@ -899,6 +965,15 @@ export async function loadPassFailChart(preloadedResults) {
   drawStatusRing(pass, fail);
 }
 
+
+/**
+ * renders/draws the pass/fail ring donut chart
+ * draws full bg ring, draws one or two colored arcs depending on how many passes/fails there are and
+ * base it off pass/fail using stroke-dasharray. overlay the pass percentage as large centered text and
+ * draws a msall legend with counts
+ * @param {number} pass 
+ * @param {number} fail 
+ */
 function drawStatusRing(pass, fail) {
   const svg = document.getElementById("passFailChart");
   svg.innerHTML = "";
@@ -964,6 +1039,13 @@ function drawStatusRing(pass, fail) {
   });
 }
 
+/**
+ * data loader for audit ratio gauge
+ * if preloaded is supplied, uses it directly skipping network call, else it queries the current
+ * user's audit ratio, total up and total down falling back to computing totalUp/totalDown if
+ * audit ratio is missing, and then calls drawAuditGauge().
+ * @param {number} preloadedRatio optional 
+ */
 export async function loadAuditGauge(preloadedRatio) {
   let ratio = preloadedRatio;
   if (ratio === undefined) {
@@ -976,6 +1058,12 @@ export async function loadAuditGauge(preloadedRatio) {
   drawAuditGauge(ratio);
 }
 
+/**
+ * svg renderer for audit circular ratio gauge
+ * draws a background ring, then a colored progress arc proportional to min(ratio, 1), full glow if the ratio is above or equal to 1,
+ * colored red and yellow if audit ratio is less than 1. It then ovverlays the ratio with a given / received caption
+ * @param {number} ratio 
+ */
 function drawAuditGauge(ratio) {
   const svg = document.getElementById("auditGauge");
   svg.innerHTML = "";
@@ -1015,8 +1103,12 @@ function drawAuditGauge(ratio) {
   svg.appendChild(sub);
 }
 
-
-
+/**
+ * data loader for single total xp for this source stat box
+ * takes the source, queries the aggregate sum of xp-type transaction amounts for that source's path filter and updates
+ * the stat label and formatted value in the DOM.
+ * @param {string} source optional default is module 
+ */
 export async function loadSourceXPStat(source) {
   source = normalizeSource(source || "module");
   const query = `
@@ -1036,7 +1128,11 @@ export async function loadSourceXPStat(source) {
   document.getElementById("stat-xp").textContent = formatXP(rawXP);
 }
 
-
+/**
+ * data loader for best skill stat
+ * gets the highest amount skill_% transaction and updates the best skill name and its xxx/100 outline text in DOM (assuming a result was found)
+ * @param {array} preloadedTx optional, skill transactions 
+ */
 export async function loadBestSkill(preloadedTx) {
   let best;
   if (preloadedTx) {
@@ -1066,6 +1162,14 @@ export async function loadBestSkill(preloadedTx) {
   }
 }
 
+
+/**
+ * data loader for uplink log
+ * uses generation counter (uplinkGen) to guard against race conditions from rapid source-switching, meaning if
+ * a newer call starts before the time this one resolves it aborts. queries 17 recent xp transactions for the given
+ * source and passes them to renderUplinkLog().
+ * @param {string} preloadedTx source, optional, default is module
+ */
 export async function loadUplinkLog(source) {
   source = source || "module";
 
@@ -1095,7 +1199,16 @@ export async function loadUplinkLog(source) {
 
 
 let uplinkGen = 0;
-
+/**
+ * renderer for uplink log type-writer style text feed
+ * it clears the log container, and if the res is empty it shows a placeholder message:
+ * "no uplink traffic logged", if not, it formats each transaction into a display line
+ * [time] + amount XP :: label, and then recursively types each line out char by char via
+ * typeLine(), checking if gen !== uplinkGen at each step to abort if any newer log load has
+ * been called while this one is running. it auto scrolls as lines are added
+ * @param {array} entries 
+ * @param {number} gen  
+ */
 function renderUplinkLog(entries, gen) {
   const el = document.getElementById("uplinkLog");
   if (!el) return;
@@ -1130,6 +1243,15 @@ function renderUplinkLog(entries, gen) {
   next();
 }
 
+/**
+ * this is the typewriter effect helper
+ * it recursively reveals text one char at a time into the HTMLElement, 12ms
+ * per character, appending a blinking character "▌" while typing and calling
+ * done() when its done.
+ * @param {HTMLElement} el 
+ * @param {string} text 
+ * @param {function} done optional  
+ */
 function typeLine(el, text, done) {
   let i = 0;
   const speed = 12;
@@ -1146,7 +1268,19 @@ function typeLine(el, text, done) {
 }
 
 
-
+/**
+ * this is the single query loader for the entire module source dash, used to be 7 </3
+ * it fires a single query aliasing the user (me), an XP aggregate sum "xpAgg", the full module
+ * xp transaction history (xpTimeline), all skills transactions (skillTx)m all proj results (results),
+ * all project groups (groups). And from all that, it calls renderProfile() directly with the user/XP-aggregate data
+ * and computes the audit ratio, then calls drawAuditGauge() directly. It calls loadPassFailChart(data.results), calls
+ * loadSkillsChart(data.skillTx) and loadBestSkill(data.skillTx) (resuses same skill data for both), then calls 
+ * loadXpOverTimeChart("module", data.xpTimeline), starts the uplink by sorting data.xpTimeline descending and taking
+ * the most recent 17 entries, and then renders it directly using renderUplinkLog() without any other separate fetch,
+ * it then builds xpByPath map by summing data.xpTimeline aamount per transaction path, after that it calls
+ * loadModuleProjects(tbody, data.groups, me, xpByPath) so proj xp totals are taken from data that's already acquired by us
+ * instead of fetching it again, then uses attachProjectXP()
+ */
 export async function loadDashboardModule() {
   const query = `
     {
@@ -1231,7 +1365,15 @@ export async function loadDashboardModule() {
   }
 }
 
-
+/**
+ * renderer for street cred rank/level widget.
+ * it builds and inject html showing the current level number, rank title, rank description and a progress bar towards
+ * the next rank, and the percentage for the next tier, in case the user is already at the final tier, it will show
+ * "MAX TIER" "CAPPED" with no next rank.
+ * @param {object} rank {current: {title, desc}}, next: {title} | null, progress} - this is the rank replacer with description
+ * @param {object} level  {level}.
+ * @returns undefined
+ */
 export function drawStreetCred(rank, level) {
   const wrap = document.getElementById("streetCred");
   if (!wrap) return;
