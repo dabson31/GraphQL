@@ -2,12 +2,6 @@ function createLoginView() {
   return `
     <section id="view-login" class="view">
 
-      <div id="preBootOverlay" class="pre-boot-overlay">
-        <div id="preBootPrompt" class="pre-boot-prompt">
-          click anything to continue
-        </div>
-      </div>
-
       <div class="bw-sweep"></div>
 
       <div class="login-wrap">

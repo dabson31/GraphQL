@@ -25,10 +25,10 @@ export function runBootSequence() {
 
   const bootLines = [
     "BLACKWALL RELAY // COLD BOOT",
-    "establishing uplink to learn.reboot01.com ...",
-    "handshake ok -- negotiating jwt bearer session",
+    "establishing link to learn.reboot01.com ...",
+    "negotiating jwt bearer session",
     "bypassing ICE... clean pass, no trace flags",
-    "mounting graphql-engine/v1/graphql",
+    "connecting to graphql endpoint",
     "decrypting personnel record",
     "rendering neural dashboard",
     "Welcome back, choom. Never settle.",
@@ -146,7 +146,7 @@ export function runBootSequence() {
 
   let i = 0;
 
-  // recuresively types out each line of bootLines char by char, then after all are shown it clears them and calls shatterOverlay
+  // types out each line of bootLines char by char, then after all are shown it clears them and calls shatterOverlay
   function nextLine() {
     if (i >= bootLines.length) {
       setTimeout(() => {
