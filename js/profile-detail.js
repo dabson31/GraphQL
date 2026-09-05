@@ -27,7 +27,12 @@ function setRowVisible(valueId, visible) {
 function sumXP(xpField) {
   if (!xpField) return 0;
   if (Array.isArray(xpField)) {
-    return xpField.reduce((sum, tx) => sum + (tx.amount || 0), 0);
+    const seen = new Set();
+    return xpField.reduce((sum, tx) => {
+      if (tx.id != null && seen.has(tx.id)) return sum; // skip duplicate
+      if (tx.id != null) seen.add(tx.id);
+      return sum + (tx.amount || 0);
+    }, 0);
   }
   if (xpField.amount != null) return xpField.amount;
   if (xpField.aggregate) return xpField.aggregate.sum.amount || 0;
@@ -149,7 +154,7 @@ async function loadProfileDetail() {
           userId
           userLogin
           userAuditRatio
-          xp { amount }
+          xp { id amount }
           publicUser {
             firstName
             lastName
