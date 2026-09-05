@@ -187,7 +187,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     password.value = "\u2588".repeat(Math.max(password.value.length, 8));
     await sleep(160);
     password.value = "";
-    password.type = originalType;
+    password.type = "password";
 
     
     clearLog(log);
