@@ -65,3 +65,11 @@ export function decodeJWT(token) {
   const decoded = atob(payload);
   return JSON.parse(decoded);
 }
+
+// good practice to have a safety margin
+export function isTokenExpiring(bufferSeconds = 30) {
+  const token = getToken();
+  if (!token) return true;
+  const { exp } = decodeJWT(token);
+  return Date.now() / 1000 > exp - bufferSeconds;
+}
