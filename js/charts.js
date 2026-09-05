@@ -731,6 +731,7 @@ function buildProjectProgressRow(g) {
 
   const statusCol = document.createElement("div");
   statusCol.className = "pp-col pp-col-status";
+  statusCol.setAttribute("data-label", "Status");
   const statusEl = document.createElement("span");
   statusEl.className = "project-progress-status " + status.cls;
   statusEl.textContent = status.label;
@@ -739,9 +740,11 @@ function buildProjectProgressRow(g) {
   const captainCol = document.createElement("div");
   captainCol.className = "pp-col pp-col-captain project-progress-captain";
   captainCol.textContent = isCamp ? "Part" : (isMeCaptain ? "Me" : captainLogin);
+  captainCol.setAttribute("data-label", "Captain");
 
   const xpCol = document.createElement("div");
   xpCol.className = "pp-col pp-col-xp project-progress-xp";
+  xpCol.setAttribute("data-label", "XP");
   const isFinished = statusKey === "finished";
   if (g.__xp) {
     const xpAmount = document.createElement("span");
