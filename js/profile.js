@@ -16,7 +16,7 @@ const RANKS = [
   { min: 50000,    title: "Solo",              desc: "contracts get done, no questions asked" },
   { min: 150000,    title: "Fixer",             desc: "knows people who know people... who know people" },
   { min: 400000,    title: "Netwatch Ghost",    desc: "moves through the net like a ghost, untraceable" },
-  { min: 800000,   title: "Blackwall Breaker", desc: "the kind of legend corpo suits tell rookies about" },
+  { min: 800000,   title: "Blackwall Vessel", desc: "the kind of legend corpo suits tell rookies about" },
 ];
 
 
