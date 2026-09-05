@@ -1231,7 +1231,7 @@ svg text { font-family: var(--font-mono); fill: var(--ice-dim); }
 
 
 
-.uplink-card { justify-content: flex-start; max-height: 220px }
+.uplink-card { align-items: stretch; justify-content: flex-start; }
 
 .uplink-log {
   width: 100%;
