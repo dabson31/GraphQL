@@ -38,6 +38,7 @@ export function computeRank(xp) {
 
 export function computeLevel(xp) {
   xp = xp || 0;
+  xp = Math.floor(xp || 0);
   const level = Math.floor(Math.sqrt(xp / 1000)) + 1;
   const xpForLevel = (n) => (n - 1) ** 2 * 1000;
   const currentFloor = xpForLevel(level);
